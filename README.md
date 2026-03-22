@@ -1,6 +1,7 @@
 
 
 ```
+010  Frontend Observability with Grafana Faro and Grafana Alloy
 009  Quick Guide to Chart Types and When to Use Them
 008  Understanding the high cardinality problem in Prometheus
 007  Processing observability data at scale with Apache Flink
