@@ -1,22 +1,16 @@
-# shared
 
-*collection of proof-of-concepts (PoCs) created to explore ideas and test technologies*
 
-### Content
-
-#### 2025
-
-| id                 | publicationDate | title                                                                                       |
-| ------------------ | --------------- | ------------------------------------------------------------------------------------------- |
-| [001](content/001) | 2025-01-10      | Exploring alternatives for load balancing and reverse proxy                                 |
-| [002](content/002) | 2025-02-10      | Building a modern observability platform using Prometheus, Grafana, Tempo and OpenTelemetry |
-| [003](content/003) | 2025-02-01      | How to monitor PostgreSQL running in container                                              |
-| [004](content/004) | 2025-06-27      | PostgreSQL Data Replication                                                                 |
-| [005](content/005) | 2025-07-12      | Basic log segregation with OpenTelemetry using routing connector                            |
-| [006](content/006) | 2025-07-29      | Building a custom Opentelemetry Collector with custom processor                             |
-| [007](content/007) | 2025-08-20      | Processing observability data at scale with Apache Flink                                    |
-| [008](content/008) | 2025-09-05      | Understanding the high cardinality problem in Prometheus                                    |
-| [009](content/009) | 2025-11-29      | Quick Guide to Chart Types and When to Use Them                                             |
+| id                 | title                                                                                       | tags                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| [009](content/009) | Quick Guide to Chart Types and When to Use Them                                             | #grafana #visualization #charts                           |
+| [008](content/008) | Understanding the high cardinality problem in Prometheus                                    | #prometheus #cardinality #metrics #observability          |
+| [007](content/007) | Processing observability data at scale with Apache Flink                                    | #flink #observability #streaming #scalability             |
+| [006](content/006) | Building a custom Opentelemetry Collector with custom processor                             | #opentelemetry #collector #golang                         |
+| [005](content/005) | Basic log segregation with OpenTelemetry using routing connector                            | #opentelemetry #logs #routing                             |
+| [004](content/004) | PostgreSQL Data Replication                                                                 | #postgresql #replication #database                        |
+| [003](content/003) | How to monitor PostgreSQL running in container                                              | #postgresql #monitoring #docker #observability            |
+| [002](content/002) | Building a modern observability platform using Prometheus, Grafana, Tempo and OpenTelemetry | #observability #prometheus #grafana #opentelemetry        |
+| [001](content/001) | Exploring alternatives for load balancing and reverse proxy                                 | #loadbalancing #nginx #haproxy #reverseproxy              |
 
 <!--
 | [005](content/005) | 2025-01-01      | PostgreSQL observability #docker-compose                                    |
