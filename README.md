@@ -1,6 +1,12 @@
 
 
 ```
+018  Analyzing OTLP Protocol Encodings with tcpdump
+017  OpenTelemetry Signal Routing with Envoy Proxy
+016  Routing OTLP Data to Kafka with Vector
+015  Distributed Observability Pipeline with OpenTelemetry and Kafka
+014  Storing OpenTelemetry Data in ClickHouse
+013  Collecting Docker Logs with Fluent Bit and Loki
 012  Alerting with Prometheus, Alertmanager, Karma, and a Flask Application
 011  Network Connectivity Monitoring with network_exporter on Kubernetes
 010  Frontend Observability with Grafana Faro and Grafana Alloy
