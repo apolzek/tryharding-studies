@@ -1,6 +1,8 @@
 
 
 ```
+012  Alerting with Prometheus, Alertmanager, Karma, and a Flask Application
+011  Network Connectivity Monitoring with network_exporter on Kubernetes
 010  Frontend Observability with Grafana Faro and Grafana Alloy
 009  Quick Guide to Chart Types and When to Use Them
 008  Understanding the high cardinality problem in Prometheus
