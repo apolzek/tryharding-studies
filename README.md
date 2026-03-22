@@ -4,7 +4,7 @@
 009  Quick Guide to Chart Types and When to Use Them
 008  Understanding the high cardinality problem in Prometheus
 007  Processing observability data at scale with Apache Flink
-006  Building a custom Opentelemetry Collector with custom processor
+006  Building a custom OpenTelemetry Collector with custom processor
 005  Basic log segregation with OpenTelemetry using routing connector
 004  PostgreSQL Data Replication
 003  How to monitor PostgreSQL running in container
