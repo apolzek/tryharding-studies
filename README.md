@@ -1,16 +1,16 @@
 
 
-| id                 | title                                                                                       | tags                                                      |
-| ------------------ | ------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| [009](content/009) | Quick Guide to Chart Types and When to Use Them                                             | *grafana* *visualization* *charts*                           |
-| [008](content/008) | Understanding the high cardinality problem in Prometheus                                    | *prometheus* *cardinality* *metrics* *observability*          |
-| [007](content/007) | Processing observability data at scale with Apache Flink                                    | *flink* *observability* *streaming* *scalability*             |
-| [006](content/006) | Building a custom Opentelemetry Collector with custom processor                             | *opentelemetry* *collector* *golang*                         |
-| [005](content/005) | Basic log segregation with OpenTelemetry using routing connector                            | *opentelemetry* *logs* *routing*                             |
-| [004](content/004) | PostgreSQL Data Replication                                                                 | *postgresql* *replication* *database*                        |
-| [003](content/003) | How to monitor PostgreSQL running in container                                              | *postgresql* *monitoring* *docker* *observability*            |
-| [002](content/002) | Building a modern observability platform using Prometheus, Grafana, Tempo and OpenTelemetry | *observability* *prometheus* *grafana* *opentelemetry*        |
-| [001](content/001) | Exploring alternatives for load balancing and reverse proxy                                 | *loadbalancing* *nginx* *haproxy* *reverseproxy*              |
+| title | tags |
+| ----- | ---- |
+| [Quick Guide to Chart Types and When to Use Them](content/009) | *grafana, visualization, charts* |
+| [Understanding the high cardinality problem in Prometheus](content/008) | *prometheus, cardinality, metrics, observability* |
+| [Processing observability data at scale with Apache Flink](content/007) | *flink, observability, streaming, scalability* |
+| [Building a custom Opentelemetry Collector with custom processor](content/006) | *opentelemetry, collector, golang* |
+| [Basic log segregation with OpenTelemetry using routing connector](content/005) | *opentelemetry, logs, routing* |
+| [PostgreSQL Data Replication](content/004) | *postgresql, replication, database* |
+| [How to monitor PostgreSQL running in container](content/003) | *postgresql, monitoring, docker, observability* |
+| [Building a modern observability platform using Prometheus, Grafana, Tempo and OpenTelemetry](content/002) | *observability, prometheus, grafana, opentelemetry* |
+| [Exploring alternatives for load balancing and reverse proxy](content/001) | *loadbalancing, nginx, haproxy, reverseproxy* |
 
 <!--
 | [005](content/005) | 2025-01-01      | PostgreSQL observability #docker-compose                                    |
