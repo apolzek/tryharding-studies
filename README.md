@@ -1,61 +1,16 @@
 
 
-<table>
-  <thead>
-    <tr>
-      <th style="width:40px">id</th>
-      <th>title</th>
-      <th>tags</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align:center"><a href="content/009">009</a></td>
-      <td>Quick Guide to Chart Types and When to Use Them</td>
-      <td><code>grafana</code> <code>visualization</code> <code>charts</code></td>
-    </tr>
-    <tr>
-      <td style="text-align:center"><a href="content/008">008</a></td>
-      <td>Understanding the high cardinality problem in Prometheus</td>
-      <td><code>prometheus</code> <code>cardinality</code> <code>metrics</code> <code>observability</code></td>
-    </tr>
-    <tr>
-      <td style="text-align:center"><a href="content/007">007</a></td>
-      <td>Processing observability data at scale with Apache Flink</td>
-      <td><code>flink</code> <code>observability</code> <code>streaming</code> <code>scalability</code></td>
-    </tr>
-    <tr>
-      <td style="text-align:center"><a href="content/006">006</a></td>
-      <td>Building a custom Opentelemetry Collector with custom processor</td>
-      <td><code>opentelemetry</code> <code>collector</code> <code>golang</code></td>
-    </tr>
-    <tr>
-      <td style="text-align:center"><a href="content/005">005</a></td>
-      <td>Basic log segregation with OpenTelemetry using routing connector</td>
-      <td><code>opentelemetry</code> <code>logs</code> <code>routing</code></td>
-    </tr>
-    <tr>
-      <td style="text-align:center"><a href="content/004">004</a></td>
-      <td>PostgreSQL Data Replication</td>
-      <td><code>postgresql</code> <code>replication</code> <code>database</code></td>
-    </tr>
-    <tr>
-      <td style="text-align:center"><a href="content/003">003</a></td>
-      <td>How to monitor PostgreSQL running in container</td>
-      <td><code>postgresql</code> <code>monitoring</code> <code>docker</code> <code>observability</code></td>
-    </tr>
-    <tr>
-      <td style="text-align:center"><a href="content/002">002</a></td>
-      <td>Building a modern observability platform using Prometheus, Grafana, Tempo and OpenTelemetry</td>
-      <td><code>observability</code> <code>prometheus</code> <code>grafana</code> <code>opentelemetry</code></td>
-    </tr>
-    <tr>
-      <td style="text-align:center"><a href="content/001">001</a></td>
-      <td>Exploring alternatives for load balancing and reverse proxy</td>
-      <td><code>loadbalancing</code> <code>nginx</code> <code>haproxy</code> <code>reverseproxy</code></td>
-    </tr>
-  </tbody>
-</table>
+```
+009  Quick Guide to Chart Types and When to Use Them
+008  Understanding the high cardinality problem in Prometheus
+007  Processing observability data at scale with Apache Flink
+006  Building a custom Opentelemetry Collector with custom processor
+005  Basic log segregation with OpenTelemetry using routing connector
+004  PostgreSQL Data Replication
+003  How to monitor PostgreSQL running in container
+002  Building a modern observability platform using Prometheus, Grafana, Tempo and OpenTelemetry
+001  Exploring alternatives for load balancing and reverse proxy
+```
 
 <!--
 | [005](content/005) | 2025-01-01      | PostgreSQL observability #docker-compose                                    |
