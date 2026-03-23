@@ -1,4 +1,4 @@
-## Building a modern observability platform using Prometheus, Grafana, Tempo and OpenTelemetry
+## Hands-On Observability: Running Prometheus, Grafana, Tempo and OpenTelemetry Locally with Docker Compose
 
 ### Objectives
 

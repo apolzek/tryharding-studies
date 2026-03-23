@@ -17,7 +17,7 @@
 005  Basic log segregation with OpenTelemetry using routing connector
 004  PostgreSQL Data Replication
 003  How to monitor PostgreSQL running in container
-002  Building a modern observability platform using Prometheus, Grafana, Tempo and OpenTelemetry
+002  Hands-On Observability: Running Prometheus, Grafana, Tempo and OpenTelemetry Locally with Docker Compose
 001  Exploring alternatives for load balancing and reverse proxy
 ```
 
