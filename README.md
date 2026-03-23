@@ -1,23 +1,23 @@
 
 
 ```
-018  Analyzing OTLP Protocol Encodings with tcpdump
-017  OpenTelemetry Signal Routing with Envoy Proxy
-016  Routing OTLP Data to Kafka with Vector
-015  Distributed Observability Pipeline with OpenTelemetry and Kafka
-014  Storing OpenTelemetry Data in ClickHouse
-013  Collecting Docker Logs with Fluent Bit and Loki
-012  Alerting with Prometheus, Alertmanager, Karma, and a Flask Application
-011  Network Connectivity Monitoring with network_exporter on Kubernetes
-010  Frontend Observability with Grafana Faro and Grafana Alloy
-009  Quick Guide to Chart Types and When to Use Them
+018  Analyzing OTLP protocol encodings with tcpdump
+017  OpenTelemetry signal routing with Envoy Proxy
+016  Routing OTLP data to Kafka with Vector
+015  Distributed observability pipeline with OpenTelemetry and Kafka
+014  Storing OpenTelemetry data in ClickHouse
+013  Collecting Docker logs with Fluent Bit and Loki
+012  Alerting with Prometheus, Alertmanager, Karma, and a Flask application
+011  Network connectivity monitoring with network_exporter on Kubernetes
+010  Frontend observability with Grafana Faro and Grafana Alloy
+009  Quick guide to chart types and when to use them
 008  Understanding the high cardinality problem in Prometheus
 007  Processing observability data at scale with Apache Flink
 006  Building a custom OpenTelemetry Collector with custom processor
 005  Basic log segregation with OpenTelemetry using routing connector
-004  PostgreSQL Data Replication
+004  PostgreSQL data replication
 003  How to monitor PostgreSQL running in container
-002  Hands-On Observability: Running Prometheus, Grafana, Tempo and OpenTelemetry Locally with Docker Compose
+002  Hands-on observability: running Prometheus, Grafana, Tempo and OpenTelemetry locally with Docker Compose
 001  Exploring alternatives for load balancing and reverse proxy
 ```
 

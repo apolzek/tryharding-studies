@@ -1,4 +1,4 @@
-## Hands-On Observability: Running Prometheus, Grafana, Tempo and OpenTelemetry Locally with Docker Compose
+## Hands-on observability: running Prometheus, Grafana, Tempo and OpenTelemetry locally with Docker Compose
 
 ### Objectives
 
