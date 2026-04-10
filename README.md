@@ -1,22 +1,25 @@
-# shared
 
-*collection of proof-of-concepts (PoCs) created to explore ideas and test technologies*
 
-### Content
-
-#### 2025
-
-| id                 | publicationDate | title                                                                                       |
-| ------------------ | --------------- | ------------------------------------------------------------------------------------------- |
-| [001](content/001) | 2025-01-10      | Exploring alternatives for load balancing and reverse proxy                                 |
-| [002](content/002) | 2025-02-10      | Building a modern observability platform using Prometheus, Grafana, Tempo and OpenTelemetry |
-| [003](content/003) | 2025-02-01      | How to monitor PostgreSQL running in container                                              |
-| [004](content/004) | 2025-06-27      | PostgreSQL Data Replication                                                                 |
-| [005](content/005) | 2025-07-12      | Basic log segregation with OpenTelemetry using routing connector                            |
-| [006](content/006) | 2025-07-29      | Building a custom Opentelemetry Collector with custom processor                             |
-| [007](content/007) | 2025-08-20      | Processing observability data at scale with Apache Flink                                    |
-| [008](content/008) | 2025-09-05      | Understanding the high cardinality problem in Prometheus                                    |
-| [009](content/009) | 2025-11-29      | Quick Guide to Chart Types and When to Use Them                                             |
+```
+018  Analyzing OTLP protocol encodings with tcpdump
+017  OpenTelemetry signal routing with Envoy Proxy
+016  Routing OTLP data to Kafka with Vector
+015  Distributed observability pipeline with OpenTelemetry and Kafka
+014  Storing OpenTelemetry data in ClickHouse
+013  Collecting Docker logs with Fluent Bit and Loki
+012  Alerting with Prometheus, Alertmanager, Karma, and a Flask application
+011  Network connectivity monitoring with network_exporter on Kubernetes
+010  Frontend observability with Grafana Faro and Grafana Alloy
+009  Quick guide to chart types and when to use them
+008  Understanding the high cardinality problem in Prometheus
+007  Processing observability data at scale with Apache Flink
+006  Building a custom OpenTelemetry Collector with custom processor
+005  Basic log segregation with OpenTelemetry using routing connector
+004  PostgreSQL data replication
+003  How to monitor PostgreSQL running in container
+002  Hands-on observability: running Prometheus, Grafana, Tempo and OpenTelemetry locally with Docker Compose
+001  Exploring alternatives for load balancing and reverse proxy
+```
 
 <!--
 | [005](content/005) | 2025-01-01      | PostgreSQL observability #docker-compose                                    |

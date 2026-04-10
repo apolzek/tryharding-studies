@@ -1,159 +1,81 @@
-# POC 010 — Discord Bot + Whisper API (Transcrição Local)
+## Frontend Observability with Grafana Faro and Grafana Alloy
 
-Bot Discord que monitora o canal `robo`, transcreve mensagens de voz usando Whisper rodando localmente na GPU, e grava mensagens de texto e áudios de canal de voz.
+### Objectives
 
-## Arquitetura
+The goal of this PoC is to explore what observability data can be extracted from a browser-based frontend using Grafana Faro, and how to correlate it end-to-end with backend traces. A plain HTML/JS frontend is instrumented with the Faro Web SDK to capture logs, JavaScript errors, web vitals, and distributed traces. A Node.js backend is instrumented with OpenTelemetry. Both signal streams are collected by Grafana Alloy, which routes logs to Loki and traces to Tempo, with everything visualized in Grafana.
 
-```
-Discord
-  │
-  ▼
-discord-bot          ──► whisper-api (faster-whisper + CUDA)
-  │  recebe audio/ogg       transcreve com large-v3
-  │  responde no canal  ◄──  retorna texto
-  │
-  ├── messages.log     (texto + transcrições)
-  └── recordings/      (áudios do canal de voz .pcm)
-```
+### Architecture
 
-## Pré-requisitos
-
-- Docker + Docker Compose
-- NVIDIA GPU com driver >= 525 e [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
-- Bot Discord criado no [Developer Portal](https://discord.com/developers/applications) com as seguintes permissões: `Read Messages`, `Connect`, `Speak`, `View Channel`
-- Intents habilitados no portal: `SERVER MEMBERS INTENT`, `MESSAGE CONTENT INTENT`
-
-## Configuração
-
-Edite `discord-bot/.env` com o token do bot:
-
-```env
-DISCORD_TOKEN=seu_token_aqui
-APPLICATION_ID=seu_application_id_aqui
+```mermaid
+graph LR
+    FE[Frontend - Faro Web SDK] --logs/traces:12347--> AL[Grafana Alloy]
+    BE[Backend - Node.js OTel] --OTLP:4318--> AL
+    AL --logs--> LK[Loki]
+    AL --traces--> TM[Tempo]
+    LK --> GF[Grafana]
+    TM --> GF
+    PM[Prometheus] --> GF
 ```
 
-## Rodando com Docker
+The frontend propagates W3C Trace Context headers (`traceparent`) on every API call to the backend, linking frontend and backend spans under the same trace ID.
 
-```bash
-cd pocs/010
-docker compose up --build
+### Services
+
+| Service    | Port             | Image                   |
+| ---------- | ---------------- | ----------------------- |
+| grafana    | 3000             | grafana/grafana:10.4.0  |
+| loki       | 3100             | grafana/loki:latest     |
+| tempo      | 3200, 4317, 4318 | grafana/tempo:2.4.1     |
+| prometheus | 9090             | prom/prometheus:v2.51.0 |
+| alloy      | 12347, 12348     | grafana/alloy:v1.0.0    |
+
+### Prerequisites
+
+- docker
+- docker compose
+- node (v18+)
+- npm
+
+### Reproducing
+
+Start the observability stack
+```sh
+docker compose up -d
 ```
 
-O `whisper-api` baixa o modelo `large-v3` (~3 GB) na primeira execução e armazena em volume. Nas execuções seguintes sobe em segundos.
-
-O `discord-bot` aguarda o health check da API passar antes de iniciar.
-
-## Rodando sem Docker (desenvolvimento)
-
-**Terminal 1 — Whisper API:**
-```bash
-cd whisper-api
-./start.sh
-```
-
-**Terminal 2 — Bot:**
-```bash
-cd discord-bot
+Install backend dependencies and start the backend (port 3002)
+```sh
+cd backend
 npm install
-node index.js
+node --require ./instrumentation.js app.js
 ```
 
-## O que o bot faz
-
-| Evento | Ação |
-|---|---|
-| Mensagem de texto no canal `robo` | Salva em `messages.log` |
-| Arquivo de áudio (`audio/*`) no canal `robo` | Transcreve via Whisper e responde no canal |
-| Usuário entra no canal de voz `robo` | Bot entra e grava o áudio em `.pcm` |
-| Canal de voz fica vazio | Bot sai automaticamente |
-
-## Whisper API
-
-Serviço HTTP independente que expõe o modelo [faster-whisper](https://github.com/SYSTRAN/faster-whisper) via REST.
-
-### Endpoints
-
-#### `GET /health`
-
-Verifica se o serviço está operacional.
-
-**Resposta:**
-```json
-{
-  "status": "ok",
-  "model": "large-v3",
-  "device": "cuda"
-}
+Open the frontend in a browser
+```sh
+open frontend/index.html
 ```
 
----
+The frontend sends telemetry to Alloy at `http://localhost:12347/collect` and API requests to the backend at `http://localhost:3002/api`.
 
-#### `POST /transcribe`
+Verify signal collection
+- Grafana: http://localhost:3000 (admin / admin123)
+  - Explore → Loki: query `{service_name="frontend"}` for browser logs
+  - Explore → Tempo: search traces by service `frontend` or `backend`
+- Alloy admin: http://localhost:12348
 
-Transcreve um arquivo de áudio para texto.
+Use the item manager UI to generate signals — add, edit, and delete items. The frontend is configured with simulated random failures (30% on load, 20% on add) to produce error traces and logs automatically.
 
-**Request:** `multipart/form-data`
+### Results
 
-| Campo | Tipo | Obrigatório | Descrição |
-|---|---|---|---|
-| `file` | arquivo | sim | Áudio a transcrever (ogg, mp3, wav, mp4, webm, flac) |
-| `language` | string | não | Código do idioma (ex: `pt`, `en`). Omitir para detecção automática |
+Grafana Faro captures a wider range of browser signals than typical RUM tools: JavaScript exceptions, console output, web vitals (LCP, FID, CLS), user-initiated spans, and W3C trace context propagation to the backend. The trace correlation works — a span created in the browser for `items.load` links to the backend span for `items.list` under the same trace ID. Grafana Alloy simplifies collection by accepting both Faro payloads and OTLP data in a single agent, removing the need for a separate OTel Collector. The main limitation is that trace context injection via `propagation.inject` only works when a span is active at the time of the fetch call, which requires wrapping all API requests inside an active span context.
 
-**Exemplo com curl:**
-```bash
-curl -X POST http://localhost:8001/transcribe \
-  -F "file=@audio.ogg" \
-  -F "language=pt"
-```
-
-**Resposta:**
-```json
-{
-  "text": "Robo, você está ligado?",
-  "language": "pt",
-  "language_probability": 1.0
-}
-```
-
-**Erros:**
-
-| Código | Motivo |
-|---|---|
-| `500` | Falha na transcrição (detalhe no campo `detail`) |
-
-### Variáveis de ambiente
-
-| Variável | Padrão | Descrição |
-|---|---|---|
-| `WHISPER_MODEL` | `large-v3` | Tamanho do modelo: `tiny`, `base`, `small`, `medium`, `large-v3` |
-| `WHISPER_DEVICE` | `cuda` | `cuda` para GPU, `cpu` para CPU |
-| `WHISPER_COMPUTE` | `float16` | `float16` (GPU), `int8` (CPU ou GPU com menos VRAM) |
-
-### Modelos disponíveis
-
-| Modelo | VRAM | Velocidade | Qualidade |
-|---|---|---|---|
-| `tiny` | ~1 GB | muito rápido | baixa |
-| `base` | ~1 GB | rápido | razoável |
-| `small` | ~2 GB | rápido | boa |
-| `medium` | ~5 GB | médio | muito boa |
-| `large-v3` | ~6 GB | médio | excelente |
-
-## Estrutura de arquivos
+### References
 
 ```
-pocs/010/
-├── docker-compose.yml
-├── discord-bot/
-│   ├── Dockerfile
-│   ├── index.js
-│   ├── package.json
-│   ├── .env
-│   ├── messages.log        # log de textos e transcrições
-│   └── recordings/         # áudios do canal de voz (.pcm)
-└── whisper-api/
-    ├── Dockerfile
-    ├── server.py
-    ├── requirements.txt
-    └── start.sh            # script para rodar sem Docker
+https://github.com/grafana/faro-web-sdk
+https://grafana.com/docs/grafana-cloud/monitor-applications/frontend-observability/instrument/
+https://github.com/grafana/faro-web-sdk/blob/main/docs/sources/tutorials/quick-start-browser.md
+https://github.com/grafana/faro-web-sdk/tree/main/packages/web-tracing
+https://grafana.com/grafana/dashboards/17766-frontend-monitoring/
+https://github.com/blueswen/observability-ironman30-lab/blob/6fbf4e32f915f2e83ea4141a7defa6334991cd81/app/todo-app/jquery-app/index.html#L34
 ```
