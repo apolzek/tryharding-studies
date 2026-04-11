@@ -1,0 +1,8 @@
+[
+  {
+    "name": "otel-collector",
+    "listen": "0.0.0.0:14317",
+    "upstream": "otel-collector-2:4317",
+    "enabled": true
+  }
+]

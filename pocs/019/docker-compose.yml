@@ -1,0 +1,137 @@
+services:
+
+  # ─────────────────────────────────────────────
+  # BACKENDS
+  # ─────────────────────────────────────────────
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "14268:14268"   # Jaeger HTTP collector (legacy)
+    networks:
+      - otel-net
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"     # Prometheus UI
+    networks:
+      - otel-net
+
+  # ─────────────────────────────────────────────
+  # OTEL COLLECTOR 2  (gRPC only — internal)
+  # ─────────────────────────────────────────────
+
+  otel-collector-2:
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./config/otel-collector-2.yaml:/etc/otelcol/config.yaml:ro
+      - ./logs:/var/log/otel
+    depends_on:
+      - jaeger
+      - prometheus
+    networks:
+      - otel-net
+
+  # ─────────────────────────────────────────────
+  # TOXIPROXY  (latency injection between collectors)
+  # ─────────────────────────────────────────────
+
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.9.0
+    command: ["-config", "/etc/toxiproxy/config.json", "-host", "0.0.0.0"]
+    volumes:
+      - ./toxiproxy/toxiproxy.json:/etc/toxiproxy/config.json:ro
+    ports:
+      - "8474:8474"     # Toxiproxy management API
+      - "14317:14317"   # Proxied gRPC port (collector-1 → collector-2)
+    depends_on:
+      - otel-collector-2
+    networks:
+      - otel-net
+
+  toxiproxy-setup:
+    image: curlimages/curl:8.10.1
+    volumes:
+      - ./toxiproxy/setup.sh:/setup.sh:ro
+    entrypoint: ["/bin/sh", "/setup.sh"]
+    depends_on:
+      - toxiproxy
+    networks:
+      - otel-net
+
+  # ─────────────────────────────────────────────
+  # OTEL COLLECTOR 1  (HTTP + gRPC — public entry)
+  # ─────────────────────────────────────────────
+
+  otel-collector-1:
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./config/otel-collector-1.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+      - "13133:13133"   # Health check
+    depends_on:
+      - toxiproxy
+      - toxiproxy-setup
+    networks:
+      - otel-net
+
+  # ─────────────────────────────────────────────
+  # TELEMETRY GENERATORS
+  # ─────────────────────────────────────────────
+
+  telemetrygen-traces:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.111.0
+    command:
+      - "traces"
+      - "--otlp-endpoint=otel-collector-1:4317"
+      - "--otlp-insecure"
+      - "--duration=0"
+      - "--rate=2"
+      - "--service=demo-service"
+    depends_on:
+      - otel-collector-1
+    networks:
+      - otel-net
+    restart: unless-stopped
+
+  telemetrygen-metrics:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.111.0
+    command:
+      - "metrics"
+      - "--otlp-endpoint=otel-collector-1:4317"
+      - "--otlp-insecure"
+      - "--duration=0"
+      - "--rate=2"
+    depends_on:
+      - otel-collector-1
+    networks:
+      - otel-net
+    restart: unless-stopped
+
+  telemetrygen-logs:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.111.0
+    command:
+      - "logs"
+      - "--otlp-endpoint=otel-collector-1:4317"
+      - "--otlp-insecure"
+      - "--duration=0"
+      - "--rate=2"
+    depends_on:
+      - otel-collector-1
+    networks:
+      - otel-net
+    restart: unless-stopped
+
+networks:
+  otel-net:
+    driver: bridge
