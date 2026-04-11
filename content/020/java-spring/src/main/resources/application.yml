@@ -1,0 +1,33 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: java-spring
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/loandb}
+    username: ${SPRING_DATASOURCE_USERNAME:loandb}
+    password: ${SPRING_DATASOURCE_PASSWORD:loandb}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# OTel config is handled entirely by the Java agent via OTEL_* environment
+# variables set in docker-compose — no Spring properties needed here.
+
+python-fastapi:
+  url: ${PYTHON_FASTAPI_URL:http://localhost:8082}
+
+logging:
+  level:
+    root: INFO
+    com.tweets: DEBUG
