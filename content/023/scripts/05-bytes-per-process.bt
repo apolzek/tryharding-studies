@@ -1,0 +1,23 @@
+/*
+ * 05-bytes-per-process.bt — Aggregate TCP traffic per process.
+ *
+ * Demonstrates BPF maps (the @ variables in bpftrace). Every tcp_sendmsg
+ * and tcp_recvmsg call adds bytes to a histogram keyed by process name.
+ *
+ * When you hit Ctrl-C, bpftrace prints the maps.
+ *
+ * Run:
+ *   bpftrace /scripts/05-bytes-per-process.bt
+ */
+
+BEGIN {
+    printf("Aggregating TCP bytes per process. Ctrl-C to report.\n");
+}
+
+kprobe:tcp_sendmsg {
+    @sent[comm] = sum(arg2);
+}
+
+kprobe:tcp_recvmsg {
+    @recv[comm] = sum(arg2);
+}

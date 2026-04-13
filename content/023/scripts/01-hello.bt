@@ -1,0 +1,21 @@
+/*
+ * 01-hello.bt — The "hello world" of eBPF.
+ *
+ * Hooks the sys_enter_openat tracepoint: every time ANY process on the
+ * host calls openat(2) (the syscall used to open files), the kernel runs
+ * our BPF program which prints the PID and command name.
+ *
+ * Run:
+ *   bpftrace /scripts/01-hello.bt
+ *
+ * Stop with Ctrl-C.
+ */
+
+BEGIN {
+    printf("Tracing openat()... Ctrl-C to stop.\n");
+    printf("%-8s %-16s %s\n", "PID", "COMM", "EVENT");
+}
+
+tracepoint:syscalls:sys_enter_openat {
+    printf("%-8d %-16s openat\n", pid, comm);
+}

@@ -1,0 +1,30 @@
+services:
+  bpftrace:
+    image: quay.io/iovisor/bpftrace:latest
+    container_name: ebpf-lab
+    privileged: true
+    pid: host
+    network_mode: host
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - BPF
+      - PERFMON
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - /sys/kernel/debug:/sys/kernel/debug:rw
+      - /sys/fs/bpf:/sys/fs/bpf:rw
+      - /lib/modules:/lib/modules:ro
+      - /usr/src:/usr/src:ro
+      - ./scripts:/scripts:ro
+    command: ["sleep", "infinity"]
+
+  # Simple target used to generate traffic from inside the lab
+  curl-target:
+    image: curlimages/curl:latest
+    container_name: ebpf-curl
+    network_mode: host
+    entrypoint: ["sh", "-c", "while true; do curl -s -o /dev/null http://example.com; sleep 5; done"]
+    depends_on:
+      - bpftrace

@@ -1,0 +1,36 @@
+/*
+ * 04-packet-capture.bt — Capture information about each packet sent.
+ *
+ * Hooks kprobe on tcp_sendmsg() — called whenever a userspace process
+ * sends data over a TCP socket. We record PID, command, destination,
+ * and the number of bytes written.
+ *
+ * This is the simplest form of "packet capture" with eBPF — not at L2
+ * like tcpdump, but at the socket layer where we already know which
+ * process is responsible. That's something tcpdump cannot tell you.
+ *
+ * Run:
+ *   bpftrace /scripts/04-packet-capture.bt
+ */
+
+#include <net/sock.h>
+
+BEGIN {
+    printf("%-8s %-16s %-18s %-6s %s\n",
+        "PID", "COMM", "DEST", "PORT", "BYTES");
+}
+
+kprobe:tcp_sendmsg {
+    $sk = (struct sock *)arg0;
+    $size = arg2;
+
+    $dport = bswap($sk->__sk_common.skc_dport);
+    $daddr = ntop($sk->__sk_common.skc_daddr);
+
+    printf("%-8d %-16s %-18s %-6d %d\n",
+        pid, comm, $daddr, $dport, $size);
+}
+
+END {
+    printf("\nDone.\n");
+}

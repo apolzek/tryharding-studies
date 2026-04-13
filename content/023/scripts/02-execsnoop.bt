@@ -1,0 +1,18 @@
+/*
+ * 02-execsnoop.bt — Trace every new process (execve) on the host.
+ *
+ * Useful to see which commands are launched across the whole machine.
+ * Because the container uses pid=host, you see REAL host PIDs.
+ *
+ * Run:
+ *   bpftrace /scripts/02-execsnoop.bt
+ */
+
+BEGIN {
+    printf("%-10s %-8s %-16s %s\n", "TIME(ms)", "PID", "COMM", "ARGS");
+}
+
+tracepoint:syscalls:sys_enter_execve {
+    printf("%-10u %-8d %-16s %s\n",
+        elapsed / 1000000, pid, comm, str(args->filename));
+}

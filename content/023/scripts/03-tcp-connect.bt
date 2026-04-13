@@ -1,0 +1,27 @@
+/*
+ * 03-tcp-connect.bt — Show every outbound TCP connection on the host.
+ *
+ * Attaches a kprobe to tcp_connect(), a kernel function called whenever
+ * the kernel initiates a TCP handshake. We pull the destination IP and
+ * port straight from the `struct sock *` argument.
+ *
+ * Run:
+ *   bpftrace /scripts/03-tcp-connect.bt
+ *
+ * In another shell (inside the curl-target container, or on the host)
+ * run: curl http://example.com
+ */
+
+#include <net/sock.h>
+
+BEGIN {
+    printf("%-8s %-16s %-15s %-5s\n", "PID", "COMM", "DADDR", "DPORT");
+}
+
+kprobe:tcp_connect {
+    $sk = (struct sock *)arg0;
+    $dport = bswap($sk->__sk_common.skc_dport);
+    $daddr = ntop($sk->__sk_common.skc_daddr);
+
+    printf("%-8d %-16s %-15s %-5d\n", pid, comm, $daddr, $dport);
+}
