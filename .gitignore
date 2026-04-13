@@ -62,3 +62,12 @@ content/003/data/postgres/pg_wal/000000010000000000000001
 content/006/dist/custom-collector
 content/006/dist/custom-collector
 content/006/dist/custom-collector
+content/020/go-fiber/loan-gateway
+content/022/whisper-api/venv/lib/python3.14/site-packages/ctranslate2/_ext.cpython-314-x86_64-linux-gnu.so
+content/022/whisper-api/venv/lib/python3.14/site-packages/numpy.libs/libscipy_openblas64_-32a4b2a6.so
+content/022/whisper-api/venv/lib/python3.14/site-packages/ctranslate2.libs/libctranslate2-5a650b64.so.4.7.1
+content/022/whisper-api/venv/lib/python3.14/site-packages/av.libs/libx265-3fd9b07c.so.215
+content/022/whisper-api/venv/lib/python3.14/site-packages/av.libs/libavcodec-801b7707.so.62.11.100
+content/022/whisper-api/venv/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_pybind11_state.cpython-314-x86_64-linux-gnu.so
+content/022/whisper-api/venv/lib/python3.14/site-packages/onnxruntime/capi/libonnxruntime.so.1.24.4
+content/022/whisper-api/venv/lib/python3.14/site-packages/hf_xet/hf_xet.abi3.so
