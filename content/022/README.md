@@ -1,159 +1,99 @@
-# POC 010 — Discord Bot + Whisper API (Transcrição Local)
+## Discord bot with local Whisper transcription on GPU
 
-Bot Discord que monitora o canal `robo`, transcreve mensagens de voz usando Whisper rodando localmente na GPU, e grava mensagens de texto e áudios de canal de voz.
+### Objectives
 
-## Arquitetura
+Build a Discord bot that watches a specific text channel, transcribes voice messages locally with [faster-whisper](https://github.com/SYSTRAN/faster-whisper) running on a CUDA GPU, and records audio from the voice channel. The PoC shows how to decouple a chat bot from the heavy model by exposing Whisper as an independent HTTP service — keeping the bot lightweight and letting the GPU workload be swapped, scaled, or replaced without touching the Discord integration.
+
+### Prerequisites
+
+- Docker + Docker Compose
+- NVIDIA GPU with driver ≥ 525 and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+- Discord bot created at the [Developer Portal](https://discord.com/developers/applications) with permissions: `Read Messages`, `Connect`, `Speak`, `View Channel`
+- Intents enabled: `SERVER MEMBERS INTENT`, `MESSAGE CONTENT INTENT`
+
+### Architecture
 
 ```
 Discord
   │
   ▼
-discord-bot          ──► whisper-api (faster-whisper + CUDA)
-  │  recebe audio/ogg       transcreve com large-v3
-  │  responde no canal  ◄──  retorna texto
+discord-bot          ──►  whisper-api (faster-whisper + CUDA)
+  │ receives audio/ogg       transcribes with large-v3
+  │ replies in channel   ◄── returns text
   │
-  ├── messages.log     (texto + transcrições)
-  └── recordings/      (áudios do canal de voz .pcm)
+  ├── messages.log          (text + transcriptions)
+  └── recordings/           (voice channel audio .pcm)
 ```
 
-## Pré-requisitos
+### Reproducing
 
-- Docker + Docker Compose
-- NVIDIA GPU com driver >= 525 e [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
-- Bot Discord criado no [Developer Portal](https://discord.com/developers/applications) com as seguintes permissões: `Read Messages`, `Connect`, `Speak`, `View Channel`
-- Intents habilitados no portal: `SERVER MEMBERS INTENT`, `MESSAGE CONTENT INTENT`
-
-## Configuração
-
-Edite `discord-bot/.env` com o token do bot:
+Edit `discord-bot/.env` with the bot token:
 
 ```env
-DISCORD_TOKEN=seu_token_aqui
-APPLICATION_ID=seu_application_id_aqui
+DISCORD_TOKEN=your_token_here
+APPLICATION_ID=your_application_id_here
 ```
 
-## Rodando com Docker
+Run with Docker:
 
 ```bash
-cd pocs/010
 docker compose up --build
 ```
 
-O `whisper-api` baixa o modelo `large-v3` (~3 GB) na primeira execução e armazena em volume. Nas execuções seguintes sobe em segundos.
+The `whisper-api` downloads the `large-v3` model (~3 GB) on the first run and stores it in a volume. Subsequent runs start in seconds. The `discord-bot` waits for the API health check before starting.
 
-O `discord-bot` aguarda o health check da API passar antes de iniciar.
+Run without Docker (development):
 
-## Rodando sem Docker (desenvolvimento)
-
-**Terminal 1 — Whisper API:**
 ```bash
+# Terminal 1 — Whisper API
 cd whisper-api
 ./start.sh
-```
 
-**Terminal 2 — Bot:**
-```bash
+# Terminal 2 — Bot
 cd discord-bot
 npm install
 node index.js
 ```
 
-## O que o bot faz
+Behaviour summary:
 
-| Evento | Ação |
+| Event | Action |
 |---|---|
-| Mensagem de texto no canal `robo` | Salva em `messages.log` |
-| Arquivo de áudio (`audio/*`) no canal `robo` | Transcreve via Whisper e responde no canal |
-| Usuário entra no canal de voz `robo` | Bot entra e grava o áudio em `.pcm` |
-| Canal de voz fica vazio | Bot sai automaticamente |
+| Text message in the `robo` channel | Saved to `messages.log` |
+| Audio file (`audio/*`) in the `robo` channel | Transcribed via Whisper and replied in the channel |
+| User joins the `robo` voice channel | Bot joins and records audio to `.pcm` |
+| Voice channel becomes empty | Bot leaves automatically |
 
-## Whisper API
+Whisper API endpoints:
 
-Serviço HTTP independente que expõe o modelo [faster-whisper](https://github.com/SYSTRAN/faster-whisper) via REST.
+- `GET /health` — service status (`model`, `device`)
+- `POST /transcribe` — multipart upload (`file`, optional `language`)
 
-### Endpoints
+Quick test:
 
-#### `GET /health`
-
-Verifica se o serviço está operacional.
-
-**Resposta:**
-```json
-{
-  "status": "ok",
-  "model": "large-v3",
-  "device": "cuda"
-}
-```
-
----
-
-#### `POST /transcribe`
-
-Transcreve um arquivo de áudio para texto.
-
-**Request:** `multipart/form-data`
-
-| Campo | Tipo | Obrigatório | Descrição |
-|---|---|---|---|
-| `file` | arquivo | sim | Áudio a transcrever (ogg, mp3, wav, mp4, webm, flac) |
-| `language` | string | não | Código do idioma (ex: `pt`, `en`). Omitir para detecção automática |
-
-**Exemplo com curl:**
 ```bash
 curl -X POST http://localhost:8001/transcribe \
   -F "file=@audio.ogg" \
   -F "language=pt"
 ```
 
-**Resposta:**
-```json
-{
-  "text": "Robo, você está ligado?",
-  "language": "pt",
-  "language_probability": 1.0
-}
-```
+Environment variables for the Whisper service:
 
-**Erros:**
-
-| Código | Motivo |
-|---|---|
-| `500` | Falha na transcrição (detalhe no campo `detail`) |
-
-### Variáveis de ambiente
-
-| Variável | Padrão | Descrição |
+| Variable | Default | Description |
 |---|---|---|
-| `WHISPER_MODEL` | `large-v3` | Tamanho do modelo: `tiny`, `base`, `small`, `medium`, `large-v3` |
-| `WHISPER_DEVICE` | `cuda` | `cuda` para GPU, `cpu` para CPU |
-| `WHISPER_COMPUTE` | `float16` | `float16` (GPU), `int8` (CPU ou GPU com menos VRAM) |
+| `WHISPER_MODEL` | `large-v3` | `tiny`, `base`, `small`, `medium`, `large-v3` |
+| `WHISPER_DEVICE` | `cuda` | `cuda` for GPU, `cpu` for CPU |
+| `WHISPER_COMPUTE` | `float16` | `float16` (GPU), `int8` (CPU or low-VRAM GPU) |
 
-### Modelos disponíveis
+### Results
 
-| Modelo | VRAM | Velocidade | Qualidade |
-|---|---|---|---|
-| `tiny` | ~1 GB | muito rápido | baixa |
-| `base` | ~1 GB | rápido | razoável |
-| `small` | ~2 GB | rápido | boa |
-| `medium` | ~5 GB | médio | muito boa |
-| `large-v3` | ~6 GB | médio | excelente |
+Splitting the bot from the model turned out to be the right boundary: the Node.js bot stays tiny and event-driven, while the Python/CUDA service owns all model concerns. Swapping model size (`tiny` → `large-v3`) becomes a single environment variable change with no bot redeploy. Running `large-v3` locally gives transcription quality close to commercial APIs while keeping all audio on the machine, which matters when the voice data is private. The main friction is the model size on first boot and the VRAM cost — on a 6 GB GPU `large-v3` fits only at `float16`, and falling back to `int8` is a practical workaround when sharing the GPU with other workloads.
 
-## Estrutura de arquivos
+### References
 
 ```
-pocs/010/
-├── docker-compose.yml
-├── discord-bot/
-│   ├── Dockerfile
-│   ├── index.js
-│   ├── package.json
-│   ├── .env
-│   ├── messages.log        # log de textos e transcrições
-│   └── recordings/         # áudios do canal de voz (.pcm)
-└── whisper-api/
-    ├── Dockerfile
-    ├── server.py
-    ├── requirements.txt
-    └── start.sh            # script para rodar sem Docker
+🔗 https://github.com/SYSTRAN/faster-whisper
+🔗 https://discord.js.org/
+🔗 https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+🔗 https://github.com/openai/whisper
 ```

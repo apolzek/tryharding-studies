@@ -1,26 +1,57 @@
-# Quick Guide to Chart Types and When to Use Them
+## Quick guide to chart types and when to use them
 
-| Chart Type                        | Description                                                                           | Practical Use / When to Use                                                                                   |
-| --------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Bar Chart**                      | Vertical or horizontal bars to compare categories.                                     | Compare discrete values across groups. E.g., sales by product, population by state, number of clients.       |
-| **Line Chart**                     | Connects points to show trends over time.                                             | Track evolution or temporal trends. E.g., monthly revenue, daily temperature, weekly website visits.         |
-| **Pie Chart**                      | Circle divided into proportional slices.                                              | Show proportions in small sets (≤5 categories). Avoid if many categories, as it becomes confusing.            |
-| **Histogram**                      | Shows distribution of continuous data in intervals.                                   | Visualize frequency distribution. E.g., age distribution, test scores, heights.                               |
-| **Scatter Plot**                   | Plots points to show relationships between two numeric variables.                     | Examine correlations, patterns, or clusters. E.g., height vs weight, price vs demand.                         |
-| **Area Chart**                      | Like a line chart but with the area below filled.                                     | Show volume or magnitude over time, emphasizing cumulative values.                                           |
-| **Boxplot (Whisker Plot)**         | Summarizes data distribution with median, quartiles, and outliers.                   | Analyze dispersion, symmetry, and outliers. Useful for comparing groups.                                      |
-| **Heatmap**                        | Uses color to represent values in a matrix or table.                                   | Visualize patterns, correlations, or density in matrix data. E.g., correlation matrix, resource usage.       |
-| **Donut Chart**                     | Like a pie chart but with a hole in the middle.                                       | Show parts of a whole while allowing extra info in the center.                                                |
-| **Bubble Chart**                    | Like a scatter plot, but bubble size represents a third variable.                     | Visualize relationships between three variables simultaneously.                                              |
-| **Radar (Spider) Chart**           | Displays multiple variables in a radial layout.                                       | Compare characteristics or profiles across different groups or items.                                         |
+### Objectives
 
----
+Build a quick reference mapping the most common chart types to the questions they answer best. The goal is not statistical depth but a fast decision aid when picking a visualization for a dashboard, report, or analysis — and a small runnable example for each chart type using Python and matplotlib.
 
-### Tips to Master Charts:
+### Prerequisites
 
-- **Choose the right chart for the question.**
-- **Less is more:** avoid overloading with information.
-- **Consider your audience:** simple charts for general audiences, detailed charts for experts.
-- **Use colors purposefully:** highlight what matters, avoid overwhelming the viewer.
-- **Experiment:** sometimes an unexpected chart tells the story better.
+- Python 3.9+
+- Dependencies from `requirements.txt` (`pip install -r requirements.txt`)
 
+### Reproducing
+
+```sh
+pip install -r requirements.txt
+
+python bar.py
+python linha.py
+python pizza.py
+python dispercao.py
+python distribuicao.py
+python mapa.py
+```
+
+Each script renders a minimal example of one chart type so you can tweak data and styling to build intuition.
+
+### Results
+
+| Chart Type | Description | When to use |
+|---|---|---|
+| **Bar Chart** | Vertical or horizontal bars to compare categories | Compare discrete values across groups (sales by product, population by state) |
+| **Line Chart** | Connects points to show trends over time | Track evolution or temporal trends (monthly revenue, daily temperature) |
+| **Pie Chart** | Circle divided into proportional slices | Show proportions in small sets (≤5 categories) |
+| **Histogram** | Frequency distribution of continuous data in intervals | Visualize distributions (age, scores, heights) |
+| **Scatter Plot** | Points showing relationships between two numeric variables | Examine correlations, patterns, clusters |
+| **Area Chart** | Line chart with the area below filled | Emphasize volume or cumulative values over time |
+| **Boxplot** | Median, quartiles, and outliers summary | Compare dispersion and outliers across groups |
+| **Heatmap** | Color-coded matrix values | Density, correlation, or usage matrices |
+| **Donut Chart** | Pie chart with a hole in the middle | Parts-of-a-whole with extra info in the center |
+| **Bubble Chart** | Scatter plot where size encodes a third variable | Three-variable relationships |
+| **Radar Chart** | Multiple variables in a radial layout | Compare multi-dimensional profiles |
+
+Tips to master charts:
+
+- Choose the right chart for the question
+- Less is more: avoid overloading with information
+- Simple charts for general audiences, detailed ones for experts
+- Use color purposefully — highlight what matters
+- Sometimes an unexpected chart tells the story better
+
+### References
+
+```
+🔗 https://matplotlib.org/stable/gallery/index.html
+🔗 https://www.data-to-viz.com/
+🔗 https://datavizcatalogue.com/
+```

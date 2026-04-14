@@ -1,4 +1,4 @@
-# Basic log segregation with OpenTelemetry
+## Basic log segregation with OpenTelemetry using routing connector
 
 ### Objectives
 

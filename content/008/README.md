@@ -1,6 +1,6 @@
-# Understanding the high cardinality problem in Prometheus
+## Understanding the high cardinality problem in Prometheus
 
-## Objectives
+### Objectives
 
 This experiment aims to:
 
@@ -10,21 +10,16 @@ This experiment aims to:
 - Provide a reproducible environment to test Prometheus behavior under high cardinality scenarios
 - Establish best practices for metric design to avoid cardinality explosions
 
-## Prerequisites
+### Prerequisites
 
-Before running this experiment, ensure you have:
-
-- **Docker** (version 20.10 or higher)
-- **Docker Compose** (version 2.0 or higher)
-- At least **4GB of available RAM** (8GB recommended for high cardinality tests)
+- Docker (version 20.10 or higher)
+- Docker Compose (version 2.0 or higher)
+- At least 4GB of available RAM (8GB recommended for high cardinality tests)
 - Basic understanding of Prometheus metrics and labels
-- Familiarity with YAML configuration files
 
-## Reproducing
+### Reproducing
 
-### Step 1: Clone or Setup the Project
-
-Organize your project structure as follows:
+Project layout:
 
 ```
 .
@@ -37,9 +32,7 @@ Organize your project structure as follows:
 │   └── go.mod
 ```
 
-### Step 2: Configure Metrics
-
-Edit the `genmetrics/metrics.yaml` file to define your metrics with different cardinality levels:
+Edit `genmetrics/metrics.yaml` to define metrics with different cardinality levels:
 
 ```yaml
 metrics:
@@ -48,7 +41,7 @@ metrics:
     labels:
       - name: device_id
         high_cardinality: true
-        count: 1000  # Generates 1000 unique device IDs
+        count: 1000
         pattern: "[a-z0-9]"
         length: 8
       - name: region
@@ -56,65 +49,42 @@ metrics:
         values: ["us-east", "us-west", "eu-central", "ap-south"]
 ```
 
-**Cardinality Calculation:** 1000 devices × 4 regions = **4,000 time series**
+Cardinality calculation: 1000 devices × 4 regions = **4,000 time series**
 
-### Step 3: Start the Environment
+Start the environment:
 
 ```bash
-# Build and start all services
-docker-compose up -d
-
-# Check service status
-docker-compose ps
-
-# View logs
-docker-compose logs -f
+docker compose up -d
+docker compose ps
+docker compose logs -f
 ```
 
-### Step 4: Access the Interfaces
+Access the interfaces:
 
-- **Metrics Generator Debug Info:** http://localhost:8090/debug
-- **Metrics Generator Info (JSON):** http://localhost:8090/info
-- **Raw Metrics Endpoint:** http://localhost:8090/metrics
-- **Prometheus UI:** http://localhost:9090
+- Metrics Generator Debug: http://localhost:8090/debug
+- Metrics Generator Info: http://localhost:8090/info
+- Raw Metrics Endpoint: http://localhost:8090/metrics
+- Prometheus UI: http://localhost:9090
 
-### Step 5: Monitor and Analyze
-
-#### Check Total Series Count
-
-In Prometheus, run the following query:
+Useful Prometheus queries:
 
 ```promql
+# Total active series in memory
 prometheus_tsdb_head_series
-```
 
-This shows the total number of active time series in memory.
-
-#### Monitor Memory Usage
-
-```promql
+# Prometheus resident memory
 process_resident_memory_bytes{job="prometheus"}
-```
 
-#### Check Cardinality by Metric
-
-```promql
+# Series count per metric name
 count by (__name__) ({__name__=~".+"})
-```
 
-#### Test Query Performance
-
-Execute queries with high cardinality labels and observe response times:
-
-```promql
+# Query a high cardinality label
 device_status{device_id=~".*"}
 ```
 
-### Step 6: Experiment with Different Scenarios
+Experiment with different scenarios by adjusting `metrics.yaml`:
 
-Modify `metrics.yaml` to test various scenarios:
-
-**Low Cardinality (Safe):**
+Low cardinality (safe):
 ```yaml
 - name: request_count
   labels:
@@ -125,7 +95,7 @@ Modify `metrics.yaml` to test various scenarios:
 ```
 Total series: 4 × 3 = **12 series**
 
-**Medium Cardinality (Acceptable):**
+Medium cardinality (acceptable):
 ```yaml
 - name: api_latency
   labels:
@@ -137,7 +107,7 @@ Total series: 4 × 3 = **12 series**
 ```
 Total series: 50 × 3 = **150 series**
 
-**High Cardinality (Dangerous):**
+High cardinality (dangerous):
 ```yaml
 - name: user_activity
   labels:
@@ -151,44 +121,20 @@ Total series: 50 × 3 = **150 series**
 ```
 Total series: 10,000 × 5 = **50,000 series**
 
-Restart the genmetrics service after changes:
+Restart after changing:
 
 ```bash
-docker-compose restart genmetrics
+docker compose restart genmetrics
 ```
 
-### Step 7: Stress Test
-
-To simulate extreme cardinality:
-
-1. Increase the `count` value in high cardinality labels to 100,000+
-2. Add multiple high cardinality labels to a single metric
-3. Monitor Prometheus memory consumption: `docker stats prometheus`
-4. Observe query performance degradation
-
-### Step 8: Cleanup
+Cleanup:
 
 ```bash
-# Stop and remove containers
-docker-compose down
-
-# Remove volumes (deletes all data)
-docker-compose down -v
+docker compose down
+docker compose down -v
 ```
 
-## Results
-
-### Expected Observations
-
-1. **Memory Consumption:** Each time series consumes approximately 1-3KB of memory in Prometheus. With 50,000 series, expect ~150MB base memory usage.
-
-2. **Query Latency:** Queries selecting high cardinality labels will show increased latency proportional to the number of series matched.
-
-3. **Scrape Duration:** The `/metrics` endpoint response size grows with cardinality, increasing scrape duration.
-
-4. **TSDB Performance:** High cardinality causes more frequent compaction cycles and increased disk I/O.
-
-### Sample Metrics
+### Results
 
 | Scenario | Series Count | Memory Usage | Query Time (avg) |
 |----------|--------------|--------------|------------------|
@@ -197,36 +143,27 @@ docker-compose down -v
 | High Cardinality | ~50,000 | ~250MB | 200-500ms |
 | Extreme Cardinality | ~500,000+ | 2GB+ | 1-5s |
 
-### Key Findings
+Key findings:
 
-- **Exponential Growth:** Each additional high cardinality label multiplies the total series count
-- **Memory Pressure:** Prometheus keeps all active series in memory, leading to OOM issues with extreme cardinality
-- **Query Performance:** Regex queries on high cardinality labels are particularly expensive
-- **Retention Impact:** Higher cardinality increases storage requirements proportionally
+- Each additional high cardinality label multiplies the total series count
+- Prometheus keeps all active series in memory, leading to OOM issues at the extreme
+- Regex queries on high cardinality labels are especially expensive
+- Storage requirements grow proportionally with cardinality
 
-### Best Practices Learned
+Best practices learned:
 
-1. ❌ **Avoid:** Using user IDs, request IDs, or UUIDs as label values
-2. ❌ **Avoid:** Unbounded label values (timestamps, random strings)
-3. ✅ **Use:** Fixed, bounded label sets (environment, region, status codes)
-4. ✅ **Use:** Aggregation at collection time instead of high cardinality labels
-5. ✅ **Monitor:** Track cardinality growth with `prometheus_tsdb_symbol_table_size_bytes`
+- Avoid user IDs, request IDs, or UUIDs as label values
+- Avoid unbounded label values (timestamps, random strings)
+- Prefer fixed, bounded label sets (environment, region, status codes)
+- Aggregate at collection time instead of relying on high cardinality labels
+- Track cardinality growth with `prometheus_tsdb_symbol_table_size_bytes`
 
-## References
+### References
 
-- [Prometheus Documentation - Metric and Label Naming](https://prometheus.io/docs/practices/naming/)
-- [Prometheus Best Practices - Instrumentation](https://prometheus.io/docs/practices/instrumentation/)
-- [Understanding and Reducing Prometheus Memory Usage](https://www.robustperception.io/how-much-ram-does-prometheus-2-x-need-for-cardinality-and-ingestion)
-- [Cardinality is Key: Understanding Prometheus Metrics](https://grafana.com/blog/2022/02/15/what-are-cardinality-spikes-and-why-do-they-matter/)
-- [Prometheus TSDB Format](https://prometheus.io/docs/prometheus/latest/storage/)
-- [Avoiding Cardinality Explosions](https://www.timescale.com/blog/four-types-prometheus-metrics-to-collect/)
-
-### Additional Resources
-
-- **Metrics Generator Source Code:** The Go application in `genmetrics/` demonstrates pattern-based label generation
-- **Prometheus Configuration:** Check `prometheus.yml` for scrape configurations and retention settings
-- **Docker Compose Setup:** The `docker-compose.yml` orchestrates the experiment environment
-
----
-
-**Note:** This experiment is for educational purposes. Running extreme cardinality tests in production environments is strongly discouraged as it can cause service degradation or outages.
+```
+🔗 https://prometheus.io/docs/practices/naming/
+🔗 https://prometheus.io/docs/practices/instrumentation/
+🔗 https://www.robustperception.io/how-much-ram-does-prometheus-2-x-need-for-cardinality-and-ingestion
+🔗 https://grafana.com/blog/2022/02/15/what-are-cardinality-spikes-and-why-do-they-matter/
+🔗 https://prometheus.io/docs/prometheus/latest/storage/
+```

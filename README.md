@@ -1,3 +1,8 @@
+<a href="content/024">024</a> GitHub repository inspection bot with scheduled metadata snapshots<br>
+<a href="content/023">023</a> eBPF hands-on lab with bpftrace in Docker<br>
+<a href="content/022">022</a> Discord bot with local Whisper transcription on GPU<br>
+<a href="content/020">020</a> Polyglot distributed tracing with OpenTelemetry across Go, Java, Python and Rust<br>
+<a href="content/019">019</a> Latency effects between OpenTelemetry Collectors with Toxiproxy<br>
 <a href="content/018">018</a> Analyzing OTLP protocol encodings with tcpdump<br>
 <a href="content/017">017</a> OpenTelemetry signal routing with Envoy Proxy<br>
 <a href="content/016">016</a> Routing OTLP data to Kafka with Vector<br>
