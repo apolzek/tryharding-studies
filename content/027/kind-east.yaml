@@ -1,0 +1,24 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: east
+networking:
+  podSubnet: "10.10.0.0/16"
+  serviceSubnet: "10.11.0.0/16"
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.34.0
+    kubeadmConfigPatches:
+      - |
+        kind: ClusterConfiguration
+        apiServer:
+          extraArgs:
+            service-node-port-range: "30000-32767"
+    extraPortMappings:
+      - containerPort: 30300
+        hostPort: 30300
+        protocol: TCP
+      - containerPort: 30090
+        hostPort: 30090
+        protocol: TCP
+  - role: worker
+    image: kindest/node:v1.34.0

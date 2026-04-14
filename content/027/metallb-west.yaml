@@ -1,0 +1,17 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: west-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 172.19.255.150-172.19.255.199
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: west-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - west-pool

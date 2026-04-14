@@ -1,0 +1,99 @@
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    retention: 2d
+    additionalScrapeConfigs:
+      - job_name: "istiod"
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names: ["istio-system"]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: istiod;http-monitoring
+      - job_name: "envoy-stats"
+        metrics_path: /stats/prometheus
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_container_port_name]
+            action: keep
+            regex: ".*-envoy-prom"
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:15090
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod_name
+
+grafana:
+  adminPassword: admin
+  defaultDashboardsEnabled: true
+  service:
+    type: NodePort
+    nodePort: 30300
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+      folderAnnotation: grafana_folder
+      provider:
+        foldersFromFilesStructure: true
+    datasources:
+      enabled: true
+      label: grafana_datasource
+      labelValue: "1"
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: istio
+          orgId: 1
+          folder: Istio
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/istio
+  dashboards:
+    istio:
+      istio-mesh:
+        gnetId: 7639
+        revision: 235
+        datasource: Prometheus
+      istio-service:
+        gnetId: 7636
+        revision: 235
+        datasource: Prometheus
+      istio-workload:
+        gnetId: 7630
+        revision: 235
+        datasource: Prometheus
+      istio-control-plane:
+        gnetId: 7645
+        revision: 235
+        datasource: Prometheus
+      istio-performance:
+        gnetId: 11829
+        revision: 235
+        datasource: Prometheus
+
+alertmanager:
+  enabled: false
+prometheusOperator:
+  admissionWebhooks:
+    patch:
+      enabled: true

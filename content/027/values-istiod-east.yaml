@@ -1,0 +1,7 @@
+global:
+  meshID: mesh1
+  multiCluster:
+    clusterName: east
+  network: network-east
+  logging:
+    level: "default:info"
