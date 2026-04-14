@@ -1,0 +1,82 @@
+## kube-prometheus-stack values
+## Ships Prometheus Operator, Prometheus, Alertmanager and Grafana.
+
+fullnameOverride: kps
+
+crds:
+  enabled: true
+
+defaultRules:
+  create: true
+
+alertmanager:
+  enabled: true
+
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30090
+  prometheusSpec:
+    retention: 6h
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    # Probe CRDs must carry `release: kps` — the Prometheus Operator in this
+    # chart version does NOT treat an empty `probeSelector: {}` as "match all",
+    # so we pin an explicit matchLabels. Same pattern for ServiceMonitors.
+    probeSelectorNilUsesHelmValues: false
+    probeSelector:
+      matchLabels:
+        release: kps
+    probeNamespaceSelector: {}
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector:
+      matchLabels:
+        release: kps
+    serviceMonitorNamespaceSelector: {}
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelector:
+      matchLabels:
+        release: kps
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector:
+      matchLabels:
+        release: kps
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 1
+        memory: 1Gi
+
+grafana:
+  enabled: true
+  adminPassword: admin
+  service:
+    type: NodePort
+    nodePort: 30300
+  defaultDashboardsEnabled: true
+  # The blackbox-exporter dashboard (grafana.com id 7587) is NOT loaded via
+  # `grafana.dashboards.default.*` because that path requires grafana.com
+  # reachability at helm-template time and the resulting ConfigMap came back
+  # empty in testing. Instead, `install.sh` applies `blackbox-dashboard-cm.yaml`
+  # — a labeled ConfigMap that the sidecar below picks up automatically.
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+
+kube-state-metrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+prometheusOperator:
+  admissionWebhooks:
+    patch:
+      enabled: true

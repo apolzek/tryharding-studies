@@ -1,0 +1,76 @@
+---
+# HTTP 2xx probes against public sites
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: http-public-sites
+  namespace: monitoring
+  labels:
+    release: kps
+spec:
+  jobName: blackbox-http-public
+  interval: 30s
+  scrapeTimeout: 10s
+  module: http_2xx
+  prober:
+    url: blackbox-prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+    scheme: http
+  targets:
+    staticConfig:
+      static:
+        - https://www.google.com
+        - https://www.github.com
+        - https://prometheus.io
+        - https://kubernetes.io
+        - https://grafana.com
+      labels:
+        env: public
+        team: sre
+---
+# TCP connect probes
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: tcp-endpoints
+  namespace: monitoring
+  labels:
+    release: kps
+spec:
+  jobName: blackbox-tcp
+  interval: 30s
+  scrapeTimeout: 5s
+  module: tcp_connect
+  prober:
+    url: blackbox-prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - github.com:22
+        - github.com:443
+        - 1.1.1.1:53
+      labels:
+        env: public
+        check: tcp
+---
+# DNS probes
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: dns-resolvers
+  namespace: monitoring
+  labels:
+    release: kps
+spec:
+  jobName: blackbox-dns
+  interval: 60s
+  scrapeTimeout: 5s
+  module: dns_google
+  prober:
+    url: blackbox-prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - 8.8.8.8
+        - 1.1.1.1
+      labels:
+        check: dns

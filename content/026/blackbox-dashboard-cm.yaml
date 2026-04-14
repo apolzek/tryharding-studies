@@ -1,0 +1,136 @@
+apiVersion: v1
+data:
+  blackbox.json: "{\n  \"title\": \"Blackbox Exporter\",\n  \"description\": \"Probe\
+    \ status for targets monitored by prometheus-blackbox-exporter\",\n  \"tags\"\
+    : [\"blackbox\", \"prometheus\"],\n  \"timezone\": \"browser\",\n  \"schemaVersion\"\
+    : 39,\n  \"editable\": true,\n  \"graphTooltip\": 1,\n  \"refresh\": \"30s\",\n\
+    \  \"time\": { \"from\": \"now-1h\", \"to\": \"now\" },\n  \"templating\": {\n\
+    \    \"list\": [\n      {\n        \"name\": \"job\",\n        \"label\": \"Job\"\
+    ,\n        \"type\": \"query\",\n        \"datasource\": { \"type\": \"prometheus\"\
+    , \"uid\": \"prometheus\" },\n        \"query\": { \"query\": \"label_values(probe_success,\
+    \ job)\", \"refId\": \"StandardVariableQuery\" },\n        \"refresh\": 2,\n \
+    \       \"includeAll\": true,\n        \"multi\": true,\n        \"allValue\"\
+    : \".*\",\n        \"current\": { \"text\": \"All\", \"value\": \"$__all\" }\n\
+    \      }\n    ]\n  },\n  \"panels\": [\n    {\n      \"type\": \"stat\",\n   \
+    \   \"title\": \"Targets UP\",\n      \"id\": 1,\n      \"gridPos\": { \"h\":\
+    \ 4, \"w\": 6, \"x\": 0, \"y\": 0 },\n      \"datasource\": { \"type\": \"prometheus\"\
+    , \"uid\": \"prometheus\" },\n      \"targets\": [\n        {\n          \"refId\"\
+    : \"A\",\n          \"datasource\": { \"type\": \"prometheus\", \"uid\": \"prometheus\"\
+    \ },\n          \"expr\": \"count(probe_success{job=~\\\"$job\\\"} == 1)\",\n\
+    \          \"instant\": true\n        }\n      ],\n      \"fieldConfig\": {\n\
+    \        \"defaults\": {\n          \"color\": { \"mode\": \"thresholds\" },\n\
+    \          \"thresholds\": { \"mode\": \"absolute\", \"steps\": [\n          \
+    \  { \"color\": \"red\", \"value\": null },\n            { \"color\": \"green\"\
+    , \"value\": 1 }\n          ] }\n        }\n      },\n      \"options\": {\n \
+    \       \"colorMode\": \"background\",\n        \"graphMode\": \"none\",\n   \
+    \     \"textMode\": \"value\",\n        \"reduceOptions\": { \"calcs\": [\"lastNotNull\"\
+    ], \"fields\": \"\", \"values\": false }\n      }\n    },\n    {\n      \"type\"\
+    : \"stat\",\n      \"title\": \"Targets DOWN\",\n      \"id\": 2,\n      \"gridPos\"\
+    : { \"h\": 4, \"w\": 6, \"x\": 6, \"y\": 0 },\n      \"datasource\": { \"type\"\
+    : \"prometheus\", \"uid\": \"prometheus\" },\n      \"targets\": [\n        {\n\
+    \          \"refId\": \"A\",\n          \"datasource\": { \"type\": \"prometheus\"\
+    , \"uid\": \"prometheus\" },\n          \"expr\": \"count(probe_success{job=~\\\
+    \"$job\\\"} == 0) OR on() vector(0)\",\n          \"instant\": true\n        }\n\
+    \      ],\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"color\"\
+    : { \"mode\": \"thresholds\" },\n          \"thresholds\": { \"mode\": \"absolute\"\
+    , \"steps\": [\n            { \"color\": \"green\", \"value\": null },\n     \
+    \       { \"color\": \"red\", \"value\": 1 }\n          ] }\n        }\n     \
+    \ },\n      \"options\": {\n        \"colorMode\": \"background\",\n        \"\
+    graphMode\": \"none\",\n        \"textMode\": \"value\",\n        \"reduceOptions\"\
+    : { \"calcs\": [\"lastNotNull\"], \"fields\": \"\", \"values\": false }\n    \
+    \  }\n    },\n    {\n      \"type\": \"stat\",\n      \"title\": \"Avg probe duration\"\
+    ,\n      \"id\": 3,\n      \"gridPos\": { \"h\": 4, \"w\": 6, \"x\": 12, \"y\"\
+    : 0 },\n      \"datasource\": { \"type\": \"prometheus\", \"uid\": \"prometheus\"\
+    \ },\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n         \
+    \ \"datasource\": { \"type\": \"prometheus\", \"uid\": \"prometheus\" },\n   \
+    \       \"expr\": \"avg(probe_duration_seconds{job=~\\\"$job\\\"})\",\n      \
+    \    \"instant\": true\n        }\n      ],\n      \"fieldConfig\": {\n      \
+    \  \"defaults\": {\n          \"unit\": \"s\",\n          \"decimals\": 3,\n \
+    \         \"color\": { \"mode\": \"thresholds\" },\n          \"thresholds\":\
+    \ { \"mode\": \"absolute\", \"steps\": [\n            { \"color\": \"green\",\
+    \ \"value\": null },\n            { \"color\": \"orange\", \"value\": 1 },\n \
+    \           { \"color\": \"red\", \"value\": 3 }\n          ] }\n        }\n \
+    \     },\n      \"options\": {\n        \"colorMode\": \"value\",\n        \"\
+    graphMode\": \"area\",\n        \"reduceOptions\": { \"calcs\": [\"lastNotNull\"\
+    ], \"fields\": \"\", \"values\": false }\n      }\n    },\n    {\n      \"type\"\
+    : \"stat\",\n      \"title\": \"Min SSL cert days remaining\",\n      \"id\":\
+    \ 4,\n      \"gridPos\": { \"h\": 4, \"w\": 6, \"x\": 18, \"y\": 0 },\n      \"\
+    datasource\": { \"type\": \"prometheus\", \"uid\": \"prometheus\" },\n      \"\
+    targets\": [\n        {\n          \"refId\": \"A\",\n          \"datasource\"\
+    : { \"type\": \"prometheus\", \"uid\": \"prometheus\" },\n          \"expr\":\
+    \ \"min((probe_ssl_earliest_cert_expiry{job=~\\\"$job\\\"} - time()) / 86400)\
+    \ OR on() vector(-1)\",\n          \"instant\": true\n        }\n      ],\n  \
+    \    \"fieldConfig\": {\n        \"defaults\": {\n          \"unit\": \"d\",\n\
+    \          \"decimals\": 1,\n          \"color\": { \"mode\": \"thresholds\" },\n\
+    \          \"thresholds\": { \"mode\": \"absolute\", \"steps\": [\n          \
+    \  { \"color\": \"red\", \"value\": null },\n            { \"color\": \"orange\"\
+    , \"value\": 14 },\n            { \"color\": \"green\", \"value\": 30 }\n    \
+    \      ] }\n        }\n      },\n      \"options\": {\n        \"colorMode\":\
+    \ \"value\",\n        \"graphMode\": \"none\",\n        \"reduceOptions\": { \"\
+    calcs\": [\"lastNotNull\"], \"fields\": \"\", \"values\": false }\n      }\n \
+    \   },\n    {\n      \"type\": \"table\",\n      \"title\": \"Target status\"\
+    ,\n      \"id\": 5,\n      \"gridPos\": { \"h\": 10, \"w\": 24, \"x\": 0, \"y\"\
+    : 4 },\n      \"datasource\": { \"type\": \"prometheus\", \"uid\": \"prometheus\"\
+    \ },\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n         \
+    \ \"datasource\": { \"type\": \"prometheus\", \"uid\": \"prometheus\" },\n   \
+    \       \"expr\": \"probe_success{job=~\\\"$job\\\"}\",\n          \"instant\"\
+    : true,\n          \"format\": \"table\"\n        },\n        {\n          \"\
+    refId\": \"B\",\n          \"datasource\": { \"type\": \"prometheus\", \"uid\"\
+    : \"prometheus\" },\n          \"expr\": \"probe_duration_seconds{job=~\\\"$job\\\
+    \"}\",\n          \"instant\": true,\n          \"format\": \"table\"\n      \
+    \  },\n        {\n          \"refId\": \"C\",\n          \"datasource\": { \"\
+    type\": \"prometheus\", \"uid\": \"prometheus\" },\n          \"expr\": \"probe_http_status_code{job=~\\\
+    \"$job\\\"}\",\n          \"instant\": true,\n          \"format\": \"table\"\n\
+    \        }\n      ],\n      \"transformations\": [\n        { \"id\": \"merge\"\
+    , \"options\": {} },\n        {\n          \"id\": \"organize\",\n          \"\
+    options\": {\n            \"excludeByName\": {\n              \"Time\": true,\n\
+    \              \"__name__\": true,\n              \"namespace\": true\n      \
+    \      },\n            \"renameByName\": {\n              \"Value #A\": \"success\"\
+    ,\n              \"Value #B\": \"duration_s\",\n              \"Value #C\": \"\
+    http_code\"\n            }\n          }\n        }\n      ],\n      \"fieldConfig\"\
+    : {\n        \"defaults\": {},\n        \"overrides\": [\n          {\n      \
+    \      \"matcher\": { \"id\": \"byName\", \"options\": \"success\" },\n      \
+    \      \"properties\": [\n              { \"id\": \"custom.cellOptions\", \"value\"\
+    : { \"type\": \"color-background\" } },\n              {\n                \"id\"\
+    : \"mappings\",\n                \"value\": [\n                  { \"type\": \"\
+    value\", \"options\": { \"0\": { \"text\": \"DOWN\", \"color\": \"red\", \"index\"\
+    : 0 }, \"1\": { \"text\": \"UP\", \"color\": \"green\", \"index\": 1 } } }\n \
+    \               ]\n              }\n            ]\n          },\n          {\n\
+    \            \"matcher\": { \"id\": \"byName\", \"options\": \"duration_s\" },\n\
+    \            \"properties\": [ { \"id\": \"unit\", \"value\": \"s\" }, { \"id\"\
+    : \"decimals\", \"value\": 3 } ]\n          }\n        ]\n      },\n      \"options\"\
+    : {\n        \"showHeader\": true,\n        \"cellHeight\": \"sm\"\n      }\n\
+    \    },\n    {\n      \"type\": \"timeseries\",\n      \"title\": \"Probe duration\"\
+    ,\n      \"id\": 6,\n      \"gridPos\": { \"h\": 9, \"w\": 12, \"x\": 0, \"y\"\
+    : 14 },\n      \"datasource\": { \"type\": \"prometheus\", \"uid\": \"prometheus\"\
+    \ },\n      \"targets\": [\n        {\n          \"refId\": \"A\",\n         \
+    \ \"datasource\": { \"type\": \"prometheus\", \"uid\": \"prometheus\" },\n   \
+    \       \"expr\": \"probe_duration_seconds{job=~\\\"$job\\\"}\",\n          \"\
+    legendFormat\": \"{{job}} {{instance}}\"\n        }\n      ],\n      \"fieldConfig\"\
+    : {\n        \"defaults\": {\n          \"unit\": \"s\",\n          \"custom\"\
+    : {\n            \"drawStyle\": \"line\",\n            \"lineWidth\": 2,\n   \
+    \         \"fillOpacity\": 10,\n            \"showPoints\": \"never\"\n      \
+    \    }\n        }\n      },\n      \"options\": {\n        \"legend\": { \"displayMode\"\
+    : \"table\", \"placement\": \"bottom\", \"calcs\": [\"lastNotNull\", \"mean\"\
+    , \"max\"] },\n        \"tooltip\": { \"mode\": \"multi\", \"sort\": \"desc\"\
+    \ }\n      }\n    },\n    {\n      \"type\": \"timeseries\",\n      \"title\"\
+    : \"Probe success (1=UP)\",\n      \"id\": 7,\n      \"gridPos\": { \"h\": 9,\
+    \ \"w\": 12, \"x\": 12, \"y\": 14 },\n      \"datasource\": { \"type\": \"prometheus\"\
+    , \"uid\": \"prometheus\" },\n      \"targets\": [\n        {\n          \"refId\"\
+    : \"A\",\n          \"datasource\": { \"type\": \"prometheus\", \"uid\": \"prometheus\"\
+    \ },\n          \"expr\": \"probe_success{job=~\\\"$job\\\"}\",\n          \"\
+    legendFormat\": \"{{job}} {{instance}}\"\n        }\n      ],\n      \"fieldConfig\"\
+    : {\n        \"defaults\": {\n          \"min\": 0,\n          \"max\": 1,\n \
+    \         \"custom\": {\n            \"drawStyle\": \"line\",\n            \"\
+    lineInterpolation\": \"stepAfter\",\n            \"lineWidth\": 2,\n         \
+    \   \"fillOpacity\": 20,\n            \"showPoints\": \"never\"\n          }\n\
+    \        }\n      },\n      \"options\": {\n        \"legend\": { \"displayMode\"\
+    : \"table\", \"placement\": \"bottom\", \"calcs\": [\"lastNotNull\"] },\n    \
+    \    \"tooltip\": { \"mode\": \"multi\" }\n      }\n    }\n  ]\n}\n"
+kind: ConfigMap
+metadata:
+  labels:
+    grafana_dashboard: '1'
+  name: grafana-blackbox-dashboard
+  namespace: monitoring
+
