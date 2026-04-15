@@ -1,0 +1,105 @@
+// =============================================================================
+// Grafana Alloy config for PoC-031
+// Frontends -> Faro receiver -> {Loki (logs), otel-collector (traces)}
+// Docker container logs -> Loki
+// =============================================================================
+
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+// ---- Loki write target ------------------------------------------------------
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+  external_labels = {
+    source = "alloy",
+    env    = "poc",
+  }
+}
+
+// ---- OTLP exporter pointing at the otel-collector ---------------------------
+otelcol.exporter.otlp "to_collector" {
+  client {
+    endpoint = "otel-collector:4317"
+    tls {
+      insecure             = true
+      insecure_skip_verify = true
+    }
+  }
+}
+
+// Intermediate batch processor for traces coming out of faro
+otelcol.processor.batch "faro_batch" {
+  output {
+    traces = [otelcol.exporter.otlp.to_collector.input]
+  }
+}
+
+// ---- Faro receiver for frontend telemetry -----------------------------------
+faro.receiver "frontend" {
+  server {
+    listen_address = "0.0.0.0"
+    listen_port    = 12347
+    cors_allowed_origins = [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175",
+    ]
+  }
+
+  sourcemaps { }
+
+  output {
+    logs   = [loki.write.default.receiver]
+    traces = [otelcol.processor.batch.faro_batch.input]
+  }
+}
+
+// ---- Docker container log discovery + scraping -----------------------------
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+  refresh_interval = "10s"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_compose_service"]
+    target_label  = "compose_service"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_log_stream"]
+    target_label  = "stream"
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  labels     = { job = "docker" }
+  forward_to = [loki.write.default.receiver]
+}
+
+// ---- Alloy self metrics -----------------------------------------------------
+prometheus.exporter.self "alloy" { }
+
+prometheus.scrape "alloy_self" {
+  targets    = prometheus.exporter.self.alloy.targets
+  forward_to = [prometheus.remote_write.default.receiver]
+  scrape_interval = "15s"
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "frontend-vue",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.38",
+    "uuid": "^9.0.1",
+    "web-vitals": "^4.2.4",
+    "rrweb": "^2.0.0-alpha.4",
+    "@grafana/faro-web-sdk": "^1.11.0",
+    "@grafana/faro-web-tracing": "^1.11.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/core": "^1.26.0",
+    "@opentelemetry/resources": "^1.26.0",
+    "@opentelemetry/sdk-trace-web": "^1.26.0",
+    "@opentelemetry/sdk-metrics": "^1.26.0",
+    "@opentelemetry/sdk-logs": "^0.53.0",
+    "@opentelemetry/api-logs": "^0.53.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.53.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.53.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.53.0",
+    "@opentelemetry/instrumentation": "^0.53.0",
+    "@opentelemetry/instrumentation-fetch": "^0.53.0",
+    "@opentelemetry/instrumentation-user-interaction": "^0.53.0",
+    "@opentelemetry/instrumentation-document-load": "^0.53.0",
+    "@opentelemetry/semantic-conventions": "^1.27.0",
+    "@opentelemetry/context-zone": "^1.26.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.8",
+    "@vitejs/plugin-vue": "^5.1.2",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1",
+    "vue-tsc": "^2.0.29"
+  }
+}

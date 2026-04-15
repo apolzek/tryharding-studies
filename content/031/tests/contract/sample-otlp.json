@@ -1,0 +1,33 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "backend-api" } },
+          { "key": "deployment.environment", "value": { "stringValue": "dev" } }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": { "name": "backend-api", "version": "0.1.0" },
+          "spans": [
+            {
+              "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+              "spanId": "00f067aa0ba902b7",
+              "name": "POST /api/interactions",
+              "kind": 2,
+              "startTimeUnixNano": "1713168000000000000",
+              "endTimeUnixNano": "1713168000100000000",
+              "attributes": [
+                { "key": "session.id", "value": { "stringValue": "sess_abc123" } },
+                { "key": "user.id", "value": { "stringValue": "user_42" } },
+                { "key": "interaction.type", "value": { "stringValue": "like" } }
+              ],
+              "status": { "code": 1 }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

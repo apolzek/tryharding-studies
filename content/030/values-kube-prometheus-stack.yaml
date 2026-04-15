@@ -1,0 +1,55 @@
+fullnameOverride: kps
+
+alertmanager:
+  enabled: false
+
+grafana:
+  adminPassword: admin
+  service:
+    type: NodePort
+    nodePort: 30300
+  defaultDashboardsTimezone: browser
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: "argo"
+        orgId: 1
+        folder: "Argo"
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/argo
+  dashboards:
+    argo:
+      argo-rollouts:
+        gnetId: 15386
+        revision: 1
+        datasource: Prometheus
+
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30090
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    scrapeConfigSelectorNilUsesHelmValues: false
+    retention: 6h
+
+kubeStateMetrics:
+  enabled: true
+kube-state-metrics:
+  metricLabelsAllowlist:
+  - "pods=[rollouts-pod-template-hash,app]"
+  - "replicasets=[rollouts-pod-template-hash]"
+
+defaultRules:
+  create: false

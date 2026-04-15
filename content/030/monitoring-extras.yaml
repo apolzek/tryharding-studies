@@ -1,0 +1,23 @@
+# ServiceMonitor not enough because Envoy Gateway's LoadBalancer Service
+# only exposes port 80 — the metrics port 19001 is on the pod directly.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: envoy-proxy
+  namespace: envoy-gateway-system
+  labels:
+    release: kps
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: envoy-gateway
+      app.kubernetes.io/name: envoy
+  podMetricsEndpoints:
+  - port: metrics
+    path: /stats/prometheus
+    interval: 15s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_label_gateway_envoyproxy_io_owning_gateway_name]
+      targetLabel: gateway
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: gateway_namespace

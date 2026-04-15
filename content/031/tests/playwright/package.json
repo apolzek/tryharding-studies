@@ -1,0 +1,13 @@
+{
+  "name": "tests-playwright",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test tests/smoke.spec.ts",
+    "test:obs": "playwright test tests/observability.spec.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0"
+  }
+}

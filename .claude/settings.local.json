@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /tmp/scrape)",
+      "Read(//tmp/**)",
+      "Bash(curl -sL \"https://www.jucaimoveis.com/imoveis/a-venda/\" -o venda.html)",
+      "Bash(curl -sL \"https://www.jucaimoveis.com/imoveis/para-alugar/\" -o alugar.html)",
+      "Bash(curl -sL -A \"Mozilla/5.0 \\(X11; Linux x86_64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/131.0 Safari/537.36\" \"https://www.jucaimoveis.com/imoveis/a-venda/\" -o /tmp/scrape/venda.html)",
+      "Bash(curl -sI \"https://imgs.kenlo.io/VWRCUkQ2Tnp3d1BJRDBJVe1szkhnWr9UfpZS9ftWwjXgr7v5Znen3XVcMHllDVRJJeIbi3YwVYEtu0ZC0eVOzAcG1+8ncKOJhQ2Mh6Cb3Yanp125prnKv4ni-9-VTvfp7od6jY+tP1WqvYpZY4MXGR1ldfFxSTD2Rb6COV1qghe2hRngQf5iTXZr4io3izBh2GyFQpuJyUQ05yz9K+PGlBK2ZuXdA195JcFHR9ox7ltMqBezU0J8p0oF7Jq1qTLdaOenJpi9yWxNWAZ8vJq+TqjzwtiOK59nSeUyO3cb51URUaJf1-aKA+9jrwcLou-TCwSW3hrDkec3f8vtBcFLn6EKlxCVTbQf70ruxI2Thqf-aEWEMwZspuzNqvqwOvfyGKHzLSWAj54Ms8+ILdhaK4mnQ3ZLVTQ7YiIc+FKu+PiL7ADmcnjAogIY.jpg\")",
+      "Bash(python3 *)",
+      "Bash(kill 870101)",
+      "Read(//home/apolzek/Downloads/**)",
+      "Bash(pip install *)",
+      "Bash(apt list *)",
+      "Bash(echo \"pid=$!\")"
+    ]
+  }
+}

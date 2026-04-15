@@ -1,0 +1,36 @@
+image:
+  repository: ghcr.io/apache/flink-kubernetes-operator
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+operatorPod:
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+webhook:
+  create: true
+  keystore:
+    useDefaultPassword: true
+
+watchNamespaces:
+  - default
+  - flink-jobs
+
+defaultConfiguration:
+  create: true
+  append: true
+  flink-conf.yaml: |+
+    kubernetes.operator.metrics.reporter.slf4j.factory.class: org.apache.flink.metrics.slf4j.Slf4jReporterFactory
+    kubernetes.operator.metrics.reporter.slf4j.interval: 5 MINUTE
+    kubernetes.operator.reconcile.interval: 15 s
+    kubernetes.operator.observer.progress-check.interval: 5 s
+  log4j-operator.properties: |+
+    rootLogger.level = INFO
+  log4j-console.properties: |+
+    rootLogger.level = INFO

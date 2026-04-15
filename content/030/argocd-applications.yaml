@@ -1,0 +1,54 @@
+# ArgoCD Applications that manage the two rollout demos via GitOps.
+# Apply AFTER committing this directory to the remote:
+#   kubectl apply -f argocd-applications.yaml
+#
+# If you haven't pushed yet, the Applications will report OutOfSync / missing;
+# push the files and click "Sync" (or let auto-sync do its thing).
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx-canary
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/apolzek/tryharding-studies.git
+    targetRevision: HEAD
+    path: content/030
+    directory:
+      include: "app-canary.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx-bluegreen
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/apolzek/tryharding-studies.git
+    targetRevision: HEAD
+    path: content/030
+    directory:
+      include: "app-bluegreen.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true

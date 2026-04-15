@@ -1,0 +1,186 @@
+{
+  "uid": "poc031-frontend-cmp",
+  "title": "Frontend Stack Comparison (React vs Vue vs Vanilla)",
+  "tags": ["poc-031", "frontend", "web-vitals"],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "timezone": "browser",
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "30s",
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Prometheus",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": { "text": "Prometheus", "value": "prometheus" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 100,
+      "type": "row",
+      "title": "LCP — Largest Contentful Paint",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "LCP p75 by stack",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.75, sum by (le, frontend_stack) (rate(web_vitals_lcp_bucket[5m])))",
+          "legendFormat": "{{frontend_stack}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "CLS — Cumulative Layout Shift",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "CLS p75 by stack",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 10 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.75, sum by (le, frontend_stack) (rate(web_vitals_cls_bucket[5m])))",
+          "legendFormat": "{{frontend_stack}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] }
+    },
+    {
+      "id": 102,
+      "type": "row",
+      "title": "INP — Interaction to Next Paint",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "INP p75 by stack",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 19 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.75, sum by (le, frontend_stack) (rate(web_vitals_inp_bucket[5m])))",
+          "legendFormat": "{{frontend_stack}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] }
+    },
+    {
+      "id": 103,
+      "type": "row",
+      "title": "FCP — First Contentful Paint",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "FCP p75 by stack",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.75, sum by (le, frontend_stack) (rate(web_vitals_fcp_bucket[5m])))",
+          "legendFormat": "{{frontend_stack}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] }
+    },
+    {
+      "id": 104,
+      "type": "row",
+      "title": "TTFB — Time To First Byte",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "TTFB p75 by stack",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 37 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.75, sum by (le, frontend_stack) (rate(web_vitals_ttfb_bucket[5m])))",
+          "legendFormat": "{{frontend_stack}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Summary Stats per Stack (last 15m, p75)",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 45 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.75, sum by (le, frontend_stack) (rate(web_vitals_lcp_bucket[15m])))",
+          "legendFormat": "LCP {{frontend_stack}}",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.75, sum by (le, frontend_stack) (rate(web_vitals_cls_bucket[15m])))",
+          "legendFormat": "CLS {{frontend_stack}}",
+          "format": "table",
+          "instant": true,
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.75, sum by (le, frontend_stack) (rate(web_vitals_inp_bucket[15m])))",
+          "legendFormat": "INP {{frontend_stack}}",
+          "format": "table",
+          "instant": true,
+          "refId": "C"
+        },
+        {
+          "expr": "histogram_quantile(0.75, sum by (le, frontend_stack) (rate(web_vitals_fcp_bucket[15m])))",
+          "legendFormat": "FCP {{frontend_stack}}",
+          "format": "table",
+          "instant": true,
+          "refId": "D"
+        },
+        {
+          "expr": "histogram_quantile(0.75, sum by (le, frontend_stack) (rate(web_vitals_ttfb_bucket[15m])))",
+          "legendFormat": "TTFB {{frontend_stack}}",
+          "format": "table",
+          "instant": true,
+          "refId": "E"
+        }
+      ],
+      "options": { "showHeader": true },
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] }
+    }
+  ]
+}

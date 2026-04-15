@@ -1,0 +1,45 @@
+# Installs the Gateway API traffic-router plugin into the argo-rollouts
+# controller. The controller downloads the binary on startup from the URL
+# below and uses it whenever a Rollout references
+# strategy.canary.trafficRouting.plugins."argoproj-labs/gatewayAPI".
+#
+# The ConfigMap name/namespace are fixed — the controller only reads this
+# exact location. After applying, the controller Deployment must be
+# restarted so the plugin is downloaded.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argo-rollouts-config
+  namespace: argo-rollouts
+data:
+  trafficRouterPlugins: |-
+    - name: "argoproj-labs/gatewayAPI"
+      location: "https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-gatewayapi/releases/download/v0.13.0/gatewayapi-plugin-linux-amd64"
+---
+# RBAC: the rollouts controller needs to read Services and
+# get/list/update/patch HTTPRoutes so the plugin can rewrite backendRef
+# weights during a canary.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argo-rollouts-gatewayapi
+rules:
+- apiGroups: [""]
+  resources: [services]
+  verbs: [get, list]
+- apiGroups: [gateway.networking.k8s.io]
+  resources: [httproutes]
+  verbs: [get, list, update, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argo-rollouts-gatewayapi
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argo-rollouts-gatewayapi
+subjects:
+- kind: ServiceAccount
+  name: argo-rollouts
+  namespace: argo-rollouts

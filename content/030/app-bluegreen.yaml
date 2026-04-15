@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app-bluegreen
+---
+# blue
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-blue
+  namespace: app-bluegreen
+data:
+  index.html: |
+    <!doctype html><html><head><meta charset="utf-8"><title>bluegreen blue</title>
+    <style>html,body{margin:0;height:100%;display:flex;align-items:center;
+    justify-content:center;font-family:sans-serif;background:#1565c0;color:#fff}
+    h1{font-size:6rem}</style></head>
+    <body><div><h1>BLUE</h1><p>blue/green — active</p></div></body></html>
+  nginx.conf: |
+    events {}
+    http {
+      server {
+        listen 8080;
+        location / { root /usr/share/nginx/html; index index.html; }
+        location /healthz { return 200 "ok\n"; }
+      }
+    }
+---
+# green
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-green
+  namespace: app-bluegreen
+data:
+  index.html: |
+    <!doctype html><html><head><meta charset="utf-8"><title>bluegreen green</title>
+    <style>html,body{margin:0;height:100%;display:flex;align-items:center;
+    justify-content:center;font-family:sans-serif;background:#2e7d32;color:#fff}
+    h1{font-size:6rem}</style></head>
+    <body><div><h1>GREEN</h1><p>blue/green — preview</p></div></body></html>
+  nginx.conf: |
+    events {}
+    http {
+      server {
+        listen 8080;
+        location / { root /usr/share/nginx/html; index index.html; }
+        location /healthz { return 200 "ok\n"; }
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-bg-active
+  namespace: app-bluegreen
+spec:
+  selector:
+    app: nginx-bg
+  ports: [{ name: http, port: 80, targetPort: 8080 }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-bg-preview
+  namespace: app-bluegreen
+spec:
+  selector:
+    app: nginx-bg
+  ports: [{ name: http, port: 80, targetPort: 8080 }]
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: nginx-bg
+  namespace: app-bluegreen
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: nginx-bg
+  template:
+    metadata:
+      labels:
+        app: nginx-bg
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet: { path: /healthz, port: 8080 }
+          periodSeconds: 3
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+        - name: conf
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+      volumes:
+      - name: html
+        configMap:
+          name: nginx-blue
+          items: [{ key: index.html, path: index.html }]
+      - name: conf
+        configMap:
+          name: nginx-blue
+          items: [{ key: nginx.conf, path: nginx.conf }]
+  strategy:
+    blueGreen:
+      activeService: nginx-bg-active
+      previewService: nginx-bg-preview
+      autoPromotionEnabled: false
+      scaleDownDelaySeconds: 30
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: nginx-bg-active
+  namespace: app-bluegreen
+spec:
+  parentRefs:
+  - name: eg
+    namespace: envoy-gateway-system
+  hostnames: [bluegreen.local]
+  rules:
+  - matches: [{ path: { type: PathPrefix, value: / } }]
+    backendRefs:
+    - name: nginx-bg-active
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: nginx-bg-preview
+  namespace: app-bluegreen
+spec:
+  parentRefs:
+  - name: eg
+    namespace: envoy-gateway-system
+  hostnames: [preview.bluegreen.local]
+  rules:
+  - matches: [{ path: { type: PathPrefix, value: / } }]
+    backendRefs:
+    - name: nginx-bg-preview
+      port: 80
