@@ -17,7 +17,7 @@
 <a href="content/007">007</a> Processing observability data at scale with Apache Flink<br>
 <a href="content/006">006</a> Building a custom OpenTelemetry Collector with custom processor<br>
 <a href="content/005">005</a> Basic log segregation with OpenTelemetry using routing connector<br>
-<a href="content/004">004</a> PostgreSQL data replication<br>
+<a href="content/004">004</a> PostgreSQL replication<br>
 <a href="content/003">003</a> How to monitor PostgreSQL running in container<br>
 <a href="content/002">002</a> Running Prometheus, Grafana, Tempo and OpenTelemetry locally with Docker Compose<br>
 <a href="content/001">001</a> Exploring alternatives for load balancing and reverse proxy

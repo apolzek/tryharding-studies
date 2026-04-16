@@ -1,4 +1,4 @@
-## PostgreSQL Data Replication 
+## PostgreSQL Replication
 
 ### Objectives
 
