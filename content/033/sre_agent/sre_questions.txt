@@ -1,0 +1,8 @@
+# SRE triage playbook — these are the kinds of questions an on-call engineer
+# would ask at the start of an incident. Each one forces the agent to actually
+# query the backend instead of hallucinating.
+What is the current request rate per endpoint for service demo-app?
+What is the overall error rate for demo-app right now?
+What is the p95 latency in milliseconds for each endpoint of demo-app?
+Which endpoint is the slowest by p95 and by how much does it exceed the 300ms SLO?
+Are there any firing alerts right now? If so, which services/endpoints are involved and what's the probable root cause based on the metrics?
