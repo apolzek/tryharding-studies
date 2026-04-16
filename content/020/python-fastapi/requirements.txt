@@ -4,9 +4,10 @@ httpx==0.27.0
 pydantic==2.7.1
 asyncpg==0.29.0
 
-# setuptools<72 is required because opentelemetry-instrumentation uses
-# pkg_resources, which was removed from the top-level in setuptools 72+.
-setuptools<72
+# opentelemetry-instrumentation still imports pkg_resources; setuptools
+# 78.1.1+ ships it but patches CVE-2025-47273 (PackageIndex.download path
+# traversal).
+setuptools>=78.1.1
 
 # OTel auto-instrumentation — zero manual code required in main.py.
 # opentelemetry-instrument reads OTEL_* env vars and auto-discovers
