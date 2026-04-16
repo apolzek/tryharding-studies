@@ -1,4 +1,4 @@
-module alertprocessor
+module github.com/apolzek/custom-collector/processors/alertprocessor
 
 go 1.25.0
 

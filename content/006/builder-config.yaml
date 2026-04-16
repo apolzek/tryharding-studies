@@ -8,15 +8,12 @@ dist:
 
 receivers:
   - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.135.0
-  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.135.0
 
 processors:
-  - gomod: github.com/apolzek/sherlock-collector/processors/sleepprocessor v0.0.1
+  - gomod: github.com/apolzek/custom-collector/processors/sleepprocessor v0.0.1
     path: ./processors/sleepprocessor
-  - gomod: github.com/apolzek/sherlock-collector/processors/alertprocessor v0.0.1
+  - gomod: github.com/apolzek/custom-collector/processors/alertprocessor v0.0.1
     path: ./processors/alertprocessor
 
 exporters:
-  - gomod: go.opentelemetry.io/collector/exporter/otlpexporter v0.135.0
   - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.135.0
-

@@ -1,4 +1,4 @@
-module sleepprocessor
+module github.com/apolzek/custom-collector/processors/sleepprocessor
 
 go 1.25.0
 

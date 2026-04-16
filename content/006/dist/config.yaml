@@ -8,47 +8,40 @@ receivers:
         cors:
           allowed_origins:
             - "*"
-  
-  prometheus:
-    config:
-      scrape_configs:
-        - job_name: 'otel-collector'
-          static_configs:
-            - targets: ['localhost:8888']
 
 processors:
 
   sleepprocessor:
     sleep_milliseconds: 10000
-  
+
   alertprocessor:
-    webhook_url: "http://localhost:8080/hook" 
+    webhook_url: "http://localhost:8080/hook"
     alert_rules:
       - name: "error-detector"
-        attribute_key: "error"                   
-      
+        attribute_key: "error"
+
       - name: "critical-severity"
         attribute_key: "severity"
-        attribute_value: "critical"               
-      
+        attribute_value: "critical"
+
       - name: "database-errors"
         attribute_key: "error.type"
         attribute_value: "database"
-        service_name: "user-service"             
-      
+        service_name: "user-service"
+
       - name: "payment-service-monitor"
-        service_name: "payment-service"           
-      
+        service_name: "payment-service"
+
       - name: "high-priority-alerts"
         attribute_key: "priority"
-        attribute_value: "high"                  
-        
+        attribute_value: "high"
+
     webhook_timeout: 10s
     webhook_headers:
       Authorization: "Bearer your-token"
       X-Custom-Header: "otel-alert"
     enabled_for_traces: true
-    enabled_for_metrics: true
+    enabled_for_metrics: false
 
 exporters:
 
@@ -60,14 +53,9 @@ service:
       level: "info"
 
   extensions: []
-  
+
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [sleepprocessor,alertprocessor]
-      exporters: [debug]
-    
-    metrics:
-      receivers: [prometheus]
-      processors: []
+      processors: [sleepprocessor, alertprocessor]
       exporters: [debug]

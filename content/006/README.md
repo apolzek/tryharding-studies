@@ -1,16 +1,14 @@
-## Building a custom OpenTelemetry Collector with custom processor
+## Custom OpenTelemetry Collector
 
 ### Objectives
 
-The goal of this PoC is to create a customized version of the OpenTelemetry Collector using the OpenTelemetry Collector Builder (ocb). Two custom processors are implemented: `sleepprocessor`, which introduces a configurable async delay into the pipeline, and `alertprocessor`, which triggers webhook alerts based on rules matching `service.name` or span/metric attributes. A webhook server is included to receive and display the alerts.
+Build a custom OpenTelemetry Collector distribution with the OpenTelemetry Collector Builder (ocb) and two custom processors: `sleepprocessor`, which adds a configurable async delay to the traces pipeline, and `alertprocessor`, which fires webhook alerts when spans match rules on `service.name` or attributes. A small webhook server receives and prints the alerts.
 
 ### Prerequisites
 
 - curl
 - go
 - ocb
-- docker
-- docker compose
 
 ### Architecture
 
@@ -39,7 +37,7 @@ chmod +x ocb
 sudo mv ocb /usr/local/bin
 ```
 
-Build the custom collector (uses `builder-config.yaml` already present in the repo)
+Build the custom collector (generates `dist/` sources and compiles the binary using `builder-config.yaml`)
 ```sh
 ocb --config builder-config.yaml
 ```
