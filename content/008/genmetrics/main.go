@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -43,9 +42,6 @@ type MetricsCollector struct {
 }
 
 func main() {
-
-	rand.Seed(time.Now().UnixNano())
-
 	port := getEnvWithDefault("PORT", "8090")
 
 	config, err := loadConfig("metrics.yaml")
@@ -144,7 +140,7 @@ func getEnvWithDefault(key, defaultValue string) string {
 func loadConfig(filename string) (Config, error) {
 	var config Config
 
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return config, fmt.Errorf("error reading file: %v", err)
 	}
