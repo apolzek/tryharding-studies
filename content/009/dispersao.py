@@ -40,14 +40,5 @@ fig.update_layout(
 fig.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = 1000
 fig.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = 500
 
-# Exibindo o gráfico
+fig.write_image(".image/dispersao.png", width=900, height=600, scale=2)
 fig.show()
-
-# Salvando o gráfico como arquivo HTML (opcional)
-# fig.write_html("grafico_animado.html")
-
-print("Gráfico criado com sucesso!")
-print("\nInformações sobre o dataset:")
-print(f"- Total de países: {data['country'].nunique()}")
-print(f"- Período: {data['year'].min()} a {data['year'].max()}")
-print(f"- Continentes: {', '.join(data['continent'].unique())}")

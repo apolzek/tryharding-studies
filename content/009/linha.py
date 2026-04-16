@@ -30,4 +30,5 @@ fig.update_layout(
     height=500
 )
 
+fig.write_image(".image/linha.png", width=800, height=500, scale=2)
 fig.show()

@@ -29,9 +29,5 @@ fig.update_layout(
     height=500
 )
 
-# Exibindo
-fig.show()
-
-# Salvando como HTML
-# fig.write_html("grafico_histograma_idades_clientes.html")
+fig.write_image(".image/distribuicao.png", width=800, height=500, scale=2)
 fig.show()

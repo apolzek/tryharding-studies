@@ -38,4 +38,5 @@ fig.update_layout(
     height=600
 )
 
+fig.write_image(".image/mapa.png", width=900, height=600, scale=2)
 fig.show()

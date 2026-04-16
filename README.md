@@ -1,3 +1,4 @@
+<a href="content/032">032</a> GPU-accelerated face recognition from a webcam with InsightFace<br>
 <a href="content/024">024</a> GitHub repository inspection bot with scheduled metadata snapshots<br>
 <a href="content/023">023</a> eBPF hands-on lab with bpftrace in Docker<br>
 <a href="content/022">022</a> Discord bot with local Whisper transcription on GPU<br>

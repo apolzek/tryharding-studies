@@ -31,8 +31,5 @@ fig.update_layout(
     height=500
 )
 
-# Exibindo o gráfico
+fig.write_image(".image/bar.png", width=800, height=500, scale=2)
 fig.show()
-
-# Salvando o gráfico como arquivo HTML
-fig.write_html("grafico_barras_faturamento_regional.html")

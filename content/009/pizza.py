@@ -26,5 +26,5 @@ fig.update_layout(
     paper_bgcolor='white'
 )
 
-# Exibindo o gráfico
+fig.write_image(".image/pizza.png", width=600, height=600, scale=2)
 fig.show()
