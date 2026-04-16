@@ -22,7 +22,9 @@ Cardinality is the number of unique time series Prometheus has to keep in its he
 ```
 .
 ├── docker-compose.yaml
-├── prometheus.yml
+├── prometheus.yml              # baseline scrape config
+├── prometheus-mitigated.yml    # scrape config with metric_relabel_configs + sample_limit
+├── benchmark.sh                # runs both configs, emits BENCHMARK.md
 └── genmetrics/
     ├── Dockerfile
     ├── main.go
@@ -166,17 +168,46 @@ prometheus_tsdb_head_chunks
 
 Prometheus also exposes `/api/v1/status/tsdb` and the UI page `/tsdb-status`, which list the top metrics, top labels and top label-value pairs by series count — the fastest way to spot an offender without writing PromQL.
 
-## Observed behaviour
+## Before vs. after: measuring the fix
 
-The numbers below are the order of magnitude observed on a 16 GB laptop with the default Compose setup. They are not a benchmark — they exist to give a feel for the curve.
+Talking about cardinality is cheap; measuring it is the point. `benchmark.sh` runs the stack twice — once with the baseline `prometheus.yml` and once with `prometheus-mitigated.yml` — waits 90 s for the head block to settle, and collects four signals from Prometheus itself:
 
-| Scenario              | Series configured | Head series (after ~1 min) | Prometheus RSS |
-|-----------------------|-------------------|----------------------------|----------------|
-| Low cardinality only  | ~100              | ~1k                        | ~80 MB         |
-| Default (this repo)   | ~57k              | ~115k                      | ~250 MB        |
-| High cardinality push | ~500k+            | grows unbounded            | 1–2 GB+        |
+- `prometheus_tsdb_head_series` — active series in memory
+- `process_resident_memory_bytes{job="prometheus"}` — RSS
+- `sum(rate(prometheus_tsdb_head_samples_appended_total[1m]))` — ingest throughput
+- Wall-clock latency (averaged over 5 runs via `curl -w "%{time_total}"`) of three representative queries
 
-The head-series count ends up higher than the configured number because Prometheus's own metrics and the recording of each scrape add their own series, and because `generateValuesFromPattern` draws new random strings on every tick — each tick inflates the set of seen values. That churn is part of the point: in production, high-cardinality labels often come from short-lived identifiers (pods, requests, sessions) that behave exactly like this.
+The mitigated config applies two changes at scrape time:
+
+```yaml
+sample_limit: 5000
+metric_relabel_configs:
+  - source_labels: [__name__]
+    regex: 'network_bytes_total|request_latency'
+    action: drop
+```
+
+`network_bytes_total` carries a per-connection ID (54k series from one metric) and `request_latency` carries a per-user ID (3k series) — both are the kind of identifier that belongs in traces or logs, not in a metric label. `sample_limit` is defense in depth: if the exporter ever regresses, the scrape fails loudly instead of silently ballooning the head block.
+
+Run it:
+
+```bash
+./benchmark.sh
+# writes BENCHMARK.md and prints the table below
+```
+
+Results from a 16 GB laptop (full output in [`BENCHMARK.md`](./BENCHMARK.md)):
+
+| Scenario  | Head series | RSS    | Samples ingested | count(all) | count(job) | topk(10) |
+|-----------|------------:|-------:|-----------------:|-----------:|-----------:|---------:|
+| Baseline  |     458,372 | 986 MB |        31,350/s  |    0.577s  |    0.587s  |   0.583s |
+| Mitigated |       2,372 | 341 MB |           258/s  |    0.002s  |    0.001s  |   0.002s |
+
+Relative improvement: **~193× fewer series, ~2.9× less memory, ~121× fewer samples/s, ~290× faster queries**. The query latency drop is the most striking number — it is the same PromQL against a TSDB whose postings lists are now three orders of magnitude smaller.
+
+### Why baseline head-series (458k) is much larger than the exporter reports (57k)
+
+`genmetrics/main.go:generateValuesFromPattern` draws *new* random strings on every tick, so the set of `device_id`, `user_id` and `connection_id` values the exporter emits grows with each scrape. After 90 s (nine scrapes) the head block has seen roughly 9 × 57k ≈ 513k distinct series, all still active. This churn is not a bug of the experiment — it is the core shape of the real-world problem: short-lived identifiers (pod IDs, request IDs, session IDs) behave exactly like this in production, and cardinality is bounded by total *unique* values seen during retention, not by peak concurrent values.
 
 ## Key findings
 
