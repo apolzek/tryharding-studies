@@ -1,0 +1,83 @@
+{
+  "initOk": true,
+  "serverInfo": {
+    "name": "mcp-grafana",
+    "version": "(devel)"
+  },
+  "toolCount": 50,
+  "tools": [
+    "add_activity_to_incident",
+    "alerting_manage_routing",
+    "alerting_manage_rules",
+    "create_annotation",
+    "create_folder",
+    "create_incident",
+    "find_error_pattern_logs",
+    "find_slow_requests",
+    "generate_deeplink",
+    "get_alert_group",
+    "get_annotation_tags",
+    "get_annotations",
+    "get_assertions",
+    "get_current_oncall_users",
+    "get_dashboard_by_uid",
+    "get_dashboard_panel_queries",
+    "get_dashboard_property",
+    "get_dashboard_summary",
+    "get_datasource",
+    "get_incident",
+    "get_oncall_shift",
+    "get_panel_image",
+    "get_sift_analysis",
+    "get_sift_investigation",
+    "list_alert_groups",
+    "list_datasources",
+    "list_incidents",
+    "list_loki_label_names",
+    "list_loki_label_values",
+    "list_oncall_schedules",
+    "list_oncall_teams",
+    "list_oncall_users",
+    "list_prometheus_label_names",
+    "list_prometheus_label_values",
+    "list_prometheus_metric_metadata",
+    "list_prometheus_metric_names",
+    "list_pyroscope_label_names",
+    "list_pyroscope_label_values",
+    "list_pyroscope_profile_types",
+    "list_sift_investigations",
+    "query_loki_logs",
+    "query_loki_patterns",
+    "query_loki_stats",
+    "query_prometheus",
+    "query_prometheus_histogram",
+    "query_pyroscope",
+    "search_dashboards",
+    "search_folders",
+    "update_annotation",
+    "update_dashboard"
+  ],
+  "calls": [
+    {
+      "name": "list_datasources",
+      "ok": true,
+      "preview": "{\"datasources\":[{\"id\":1,\"uid\":\"prometheus\",\"name\":\"Prometheus\",\"type\":\"prometheus\",\"isDefault\":true}],\"total\":1,\"hasMore\":false}"
+    },
+    {
+      "name": "search_dashboards",
+      "ok": true,
+      "preview": "{\"dashboards\":[],\"total\":0,\"hasMore\":false}"
+    },
+    {
+      "name": "query_prometheus",
+      "ok": true,
+      "preview": "parsing end time: syntax error: unexpected $end, expecting tNOW or tDIGIT at character 2 starting with \"\""
+    },
+    {
+      "name": "list_prometheus_metric_names",
+      "ok": true,
+      "preview": "[\"go_gc_cleanups_executed_cleanups_total\",\"go_gc_cleanups_queued_cleanups_total\",\"go_gc_cycles_automatic_gc_cycles_total\",\"go_gc_cycles_forced_gc_cycles_total\",\"go_gc_cycles_total_gc_cycles_total\"]"
+    }
+  ],
+  "stderrTail": "time=2026-04-16T19:01:08.344Z level=INFO msg=\"Using Grafana configuration\" url=http://grafana:3000 api_key_set=false basic_auth_set=true org_id=0 extra_headers_count=0\ntime=2026-04-16T19:01:08.349Z level=INFO msg=\"Fetched public URL from Grafana frontend settings\" public_url=http://localhost:3000\ntime=2026-04-16T19:01:08.354Z level=INFO msg=\"no MCP datasources discovered\"\ntime=2026-04-16T19:01:08.354Z level=INFO msg=\"Starting Grafana MCP server using stdio transport\" version=(devel)\ntime=2026-04-16T19:01:08.354Z level=INFO msg=\"Using Grafana configuration\" url=http://grafana:3000 api_key_set=false basic_auth_set=true org_id=0 extra_headers_count=0\n"
+}

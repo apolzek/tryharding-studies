@@ -1,0 +1,43 @@
+name: mcp033-vm
+
+services:
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.108.0
+    container_name: mcp033-vm-vm
+    ports: ["18428:8428"]
+    command:
+      - --storageDataPath=/storage
+      - --httpListenAddr=:8428
+      - --retentionPeriod=1d
+    networks: [obs]
+
+  vmagent:
+    image: victoriametrics/vmagent:v1.108.0
+    container_name: mcp033-vm-vmagent
+    depends_on: [victoriametrics]
+    command:
+      - --promscrape.config=/etc/vmagent/vmagent.yml
+      - --remoteWrite.url=http://victoriametrics:8428/api/v1/write
+    volumes:
+      - ./vmagent.yml:/etc/vmagent/vmagent.yml:ro
+    networks: [obs]
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: mcp033-vm-node
+    networks: [obs]
+
+  mcp:
+    image: ghcr.io/victoriametrics/mcp-victoriametrics:latest
+    container_name: mcp033-vm-mcp
+    depends_on: [victoriametrics]
+    environment:
+      MCP_SERVER_MODE: http
+      MCP_LISTEN_ADDR: 0.0.0.0:8080
+      VM_INSTANCE_ENTRYPOINT: http://victoriametrics:8428
+      VM_INSTANCE_TYPE: single
+    ports: ["18084:8080"]
+    networks: [obs]
+
+networks:
+  obs:

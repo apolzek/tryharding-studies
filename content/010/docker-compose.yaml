@@ -22,7 +22,6 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./config/grafana/provisioning:/etc/grafana/provisioning
-      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin123
@@ -40,13 +39,23 @@ services:
 
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.0.0
+    container_name: observability-loki
+    restart: unless-stopped
     ports:
       - "3100:3100"
+    user: root
+    volumes:
+      - ./config/loki/loki.yaml:/etc/loki/local-config.yaml:ro
+      - loki-data:/tmp/loki
     command: -config.file=/etc/loki/local-config.yaml
-
     networks:
       - observability
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   tempo:
     image: grafana/tempo:2.4.1
@@ -54,8 +63,6 @@ services:
     restart: unless-stopped
     ports:
       - "3200:3200"  # Tempo HTTP
-      - "4317:4317"  # OTLP gRPC
-      - "4318:4318"  # OTLP HTTP
     volumes:
       - tempo-data:/var/tempo
       - ./config/tempo:/etc/tempo
@@ -101,6 +108,8 @@ services:
     ports:
       - "12347:12347"  # Faro receiver endpoint
       - "12348:12348"  # Alloy admin interface
+      - "4318:4318"    # OTLP HTTP (backend → Alloy)
+      - "4317:4317"    # OTLP gRPC (backend → Alloy)
     volumes:
       - ./config/alloy:/etc/alloy
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -116,7 +125,7 @@ services:
       - observability
     depends_on:
       - loki
-      # - tempo
+      - tempo
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:12348/ready || exit 1"]
       interval: 10s

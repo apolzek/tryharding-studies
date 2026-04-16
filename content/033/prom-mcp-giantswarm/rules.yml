@@ -1,0 +1,21 @@
+groups:
+  - name: demo
+    interval: 5s
+    rules:
+      - alert: AlwaysFiring
+        expr: vector(1)
+        for: 0s
+        labels:
+          severity: critical
+          team: observability
+        annotations:
+          summary: "Synthetic alert that is always firing"
+          description: "Used to verify the MCP alerts tool from content/033"
+
+      - alert: NodeExporterDown
+        expr: up{job="node"} == 0
+        for: 15s
+        labels:
+          severity: warning
+        annotations:
+          summary: "node-exporter is down"

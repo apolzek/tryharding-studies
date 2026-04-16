@@ -20,8 +20,21 @@ exporters:
     endpoint: toxiproxy:14317
     tls:
       insecure: true
+    sending_queue:
+      enabled: true
+      num_consumers: 2
+      queue_size: 1000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 10s
+      max_elapsed_time: 60s
+    timeout: 5s
 
 service:
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8888
   extensions: [health_check]
   pipelines:
     traces:

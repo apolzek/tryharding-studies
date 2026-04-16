@@ -1,0 +1,33 @@
+name: mcp033-tjhop
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.11.0
+    container_name: mcp033-tj-prom
+    ports: ["19092:9090"]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.listen-address=0.0.0.0:9090
+    networks: [obs]
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: mcp033-tj-node
+    networks: [obs]
+
+  mcp:
+    image: ghcr.io/tjhop/prometheus-mcp-server:latest
+    container_name: mcp033-tj-mcp
+    depends_on: [prometheus]
+    command:
+      - --prometheus.url=http://prometheus:9090
+      - --mcp.transport=http
+      - --web.listen-address=0.0.0.0:8080
+    ports: ["18082:8080"]
+    networks: [obs]
+
+networks:
+  obs:

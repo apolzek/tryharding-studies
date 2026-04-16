@@ -1,0 +1,39 @@
+{
+  "initOk": true,
+  "serverInfo": {
+    "name": "Prometheus MCP",
+    "version": "3.1.0"
+  },
+  "toolCount": 6,
+  "tools": [
+    "health_check",
+    "execute_query",
+    "execute_range_query",
+    "list_metrics",
+    "get_metric_metadata",
+    "get_targets"
+  ],
+  "calls": [
+    {
+      "name": "execute_query",
+      "ok": true,
+      "preview": "{\"resultType\":\"vector\",\"result\":[{\"metric\":{\"span_name\":\"GET /api/fast\"},\"value\":[1776366755.927,\"3.1818181818181817\"]},{\"metric\":{\"span_name\":\"GET /api/flaky\"},\"value\":[1776366755.927,\"0.6363636363636364\"]},{\"metric\":{\"span_name\":\"GET /api/medium\"},\"value\":[1776366755.927,\"1.2727272727272727\"]},{\"m..."
+    },
+    {
+      "name": "execute_query",
+      "ok": true,
+      "preview": "{\"resultType\":\"vector\",\"result\":[{\"metric\":{},\"value\":[1776366755.931,\"0.040625\"]}],\"links\":[{\"href\":\"http://prometheus:9090/graph?g0.expr=sum%28rate%28traces_spanmetrics_calls_total%7Bservice_name%3D%22demo-app%22%2Cstatus_code%3D%22STATUS_CODE_ERROR%22%7D%5B1m%5D%29%29+%2F+sum%28rate%28traces_span..."
+    },
+    {
+      "name": "execute_query",
+      "ok": true,
+      "preview": "{\"resultType\":\"vector\",\"result\":[{\"metric\":{\"span_name\":\"GET /api/fast\"},\"value\":[1776366755.935,\"23.915289256198346\"]},{\"metric\":{\"span_name\":\"GET /api/flaky\"},\"value\":[1776366755.935,\"232.49999999999997\"]},{\"metric\":{\"span_name\":\"GET /api/medium\"},\"value\":[1776366755.935,\"235\"]},{\"metric\":{\"span_n..."
+    },
+    {
+      "name": "execute_query",
+      "ok": true,
+      "preview": "{\"resultType\":\"vector\",\"result\":[{\"metric\":{\"span_name\":\"GET /api/slow\"},\"value\":[1776366755.938,\"1840.9090909090908\"]}],\"links\":[{\"href\":\"http://prometheus:9090/graph?g0.expr=topk%281%2C+histogram_quantile%280.95%2C+sum+by+%28le%2C+span_name%29+%28rate%28traces_spanmetrics_duration_milliseconds_buc..."
+    }
+  ],
+  "stderrTail": " \"level\": \"info\", \"timestamp\": \"2026-04-16T19:12:35.935997Z\"}\nProcessing request of type CallToolRequest\n{\"query\": \"topk(1, histogram_quantile(0.95, sum by (le, span_name) (rate(traces_spanmetrics_duration_milliseconds_bucket{service_name=\\\"demo-app\\\"}[1m]))))\", \"time\": null, \"event\": \"Executing instant query\", \"level\": \"info\", \"timestamp\": \"2026-04-16T19:12:35.937930Z\"}\n{\"query\": \"topk(1, histogram_quantile(0.95, sum by (le, span_name) (rate(traces_spanmetrics_duration_milliseconds_bucket{service_name=\\\"demo-app\\\"}[1m]))))\", \"result_type\": \"vector\", \"result_count\": 1, \"event\": \"Instant query completed\", \"level\": \"info\", \"timestamp\": \"2026-04-16T19:12:35.939469Z\"}\n{\"transport\": \"stdio\", \"event\": \"Starting Prometheus MCP Server\", \"level\": \"info\", \"timestamp\": \"2026-04-16T19:12:35.941587Z\"}\n"
+}

@@ -1,0 +1,49 @@
+{
+  "initOk": true,
+  "serverInfo": {
+    "name": "VictoriaMetrics",
+    "version": "v1.20.2 (date: 2026-04-15T17:23:57Z)"
+  },
+  "toolCount": 16,
+  "tools": [
+    "active_queries",
+    "alerts",
+    "documentation",
+    "explain_query",
+    "label_values",
+    "labels",
+    "metric_statistics",
+    "metrics",
+    "metrics_metadata",
+    "prettify_query",
+    "query",
+    "query_range",
+    "rules",
+    "series",
+    "top_queries",
+    "tsdb_status"
+  ],
+  "calls": [
+    {
+      "name": "query",
+      "ok": true,
+      "preview": "{\"status\":\"success\",\"data\":{\"resultType\":\"vector\",\"result\":[{\"metric\":{\"span_name\":\"GET /api/fast\"},\"value\":[1776366765,\"2.8333333333333335\"]},{\"metric\":{\"span_name\":\"GET /api/flaky\"},\"value\":[1776366765,\"0.5666666666666667\"]},{\"metric\":{\"span_name\":\"GET /api/medium\"},\"value\":[1776366765,\"1.13333333..."
+    },
+    {
+      "name": "query",
+      "ok": true,
+      "preview": "{\"status\":\"success\",\"data\":{\"resultType\":\"vector\",\"result\":[{\"metric\":{},\"value\":[1776366765,\"0.03215434083601286\"]}]},\"stats\":{\"seriesFetched\": \"7\",\"executionTimeMsec\":0}}"
+    },
+    {
+      "name": "query",
+      "ok": true,
+      "preview": "{\"status\":\"success\",\"data\":{\"resultType\":\"vector\",\"result\":[{\"metric\":{\"span_name\":\"GET /api/fast\"},\"value\":[1776366765,\"23.96341463414634\"]},{\"metric\":{\"span_name\":\"GET /api/flaky\"},\"value\":[1776366765,\"231.78571428571428\"]},{\"metric\":{\"span_name\":\"GET /api/medium\"},\"value\":[1776366765,\"234.0625\"]}..."
+    },
+    {
+      "name": "query",
+      "ok": true,
+      "preview": "{\"status\":\"success\",\"data\":{\"resultType\":\"vector\",\"result\":[{\"metric\":{\"span_name\":\"GET /api/slow\"},\"value\":[1776366765,\"1811.111111111111\"]}]},\"stats\":{\"seriesFetched\": \"66\",\"executionTimeMsec\":0}}"
+    }
+  ],
+  "stderrTail": "thod=tools/call message=\"{\\\"method\\\":\\\"tools/call\\\",\\\"params\\\":{\\\"name\\\":\\\"query\\\",\\\"arguments\\\":{\\\"query\\\":\\\"topk(1, histogram_quantile(0.95, sum by (le, span_name) (rate(traces_spanmetrics_duration_milliseconds_bucket{service_name=\\\\\\\"demo-app\\\\\\\"}[1m]))))\\\"}}}\" result=\"{\\\"content\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"{\\\\\\\"status\\\\\\\":\\\\\\\"success\\\\\\\",\\\\\\\"data\\\\\\\":{\\\\\\\"resultType\\\\\\\":\\\\\\\"vector\\\\\\\",\\\\\\\"result\\\\\\\":[{\\\\\\\"metric\\\\\\\":{\\\\\\\"span_name\\\\\\\":\\\\\\\"GET /api/slow\\\\\\\"},\\\\\\\"value\\\\\\\":[1776366765,\\\\\\\"1811.111111111111\\\\\\\"]}]},\\\\\\\"stats\\\\\\\":{\\\\\\\"seriesFetched\\\\\\\": \\\\\\\"66\\\\\\\",\\\\\\\"executionTimeMsec\\\\\\\":0}}\\\"}]}\"\ntime=2026-04-16T19:12:45.041Z level=INFO msg=\"Tool called\" request_id=6 tool_name=query is_error=false\ntime=2026-04-16T19:12:45.042Z level=INFO msg=\"Session unregistered\" session_id=stdio\n"
+}

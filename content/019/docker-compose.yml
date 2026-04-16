@@ -9,8 +9,7 @@ services:
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "16686:16686"   # Jaeger UI
-      - "14268:14268"   # Jaeger HTTP collector (legacy)
+      - "16686:16686"
     networks:
       - otel-net
 
@@ -19,12 +18,12 @@ services:
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "9090:9090"     # Prometheus UI
+      - "9090:9090"
     networks:
       - otel-net
 
   # ─────────────────────────────────────────────
-  # OTEL COLLECTOR 2  (gRPC only — internal)
+  # OTEL COLLECTOR 2  (aggregator — behind Toxiproxy)
   # ─────────────────────────────────────────────
 
   otel-collector-2:
@@ -49,8 +48,8 @@ services:
     volumes:
       - ./toxiproxy/toxiproxy.json:/etc/toxiproxy/config.json:ro
     ports:
-      - "8474:8474"     # Toxiproxy management API
-      - "14317:14317"   # Proxied gRPC port (collector-1 → collector-2)
+      - "8474:8474"
+      - "14317:14317"
     depends_on:
       - otel-collector-2
     networks:
@@ -67,7 +66,7 @@ services:
       - otel-net
 
   # ─────────────────────────────────────────────
-  # OTEL COLLECTOR 1  (HTTP + gRPC — public entry)
+  # OTEL COLLECTOR 1  (edge — receives from generators)
   # ─────────────────────────────────────────────
 
   otel-collector-1:
@@ -76,9 +75,9 @@ services:
     volumes:
       - ./config/otel-collector-1.yaml:/etc/otelcol/config.yaml:ro
     ports:
-      - "4317:4317"     # OTLP gRPC
-      - "4318:4318"     # OTLP HTTP
-      - "13133:13133"   # Health check
+      - "4317:4317"
+      - "4318:4318"
+      - "13133:13133"
     depends_on:
       - toxiproxy
       - toxiproxy-setup
@@ -86,7 +85,7 @@ services:
       - otel-net
 
   # ─────────────────────────────────────────────
-  # TELEMETRY GENERATORS
+  # TELEMETRY GENERATORS  (high rate to stress queue)
   # ─────────────────────────────────────────────
 
   telemetrygen-traces:
@@ -96,7 +95,7 @@ services:
       - "--otlp-endpoint=otel-collector-1:4317"
       - "--otlp-insecure"
       - "--duration=0"
-      - "--rate=2"
+      - "--rate=200"
       - "--service=demo-service"
     depends_on:
       - otel-collector-1
@@ -111,7 +110,7 @@ services:
       - "--otlp-endpoint=otel-collector-1:4317"
       - "--otlp-insecure"
       - "--duration=0"
-      - "--rate=2"
+      - "--rate=200"
     depends_on:
       - otel-collector-1
     networks:
@@ -125,12 +124,25 @@ services:
       - "--otlp-endpoint=otel-collector-1:4317"
       - "--otlp-insecure"
       - "--duration=0"
-      - "--rate=2"
+      - "--rate=200"
     depends_on:
       - otel-collector-1
     networks:
       - otel-net
     restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # CLIENT  (helper container for running curl/jq via docker compose exec)
+  # ─────────────────────────────────────────────
+
+  client:
+    image: alpine:3.20
+    command: ["sh", "-c", "apk add --no-cache curl jq >/dev/null && tail -f /dev/null"]
+    depends_on:
+      - toxiproxy
+      - prometheus
+    networks:
+      - otel-net
 
 networks:
   otel-net:

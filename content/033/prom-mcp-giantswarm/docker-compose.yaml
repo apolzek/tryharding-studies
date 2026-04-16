@@ -1,0 +1,46 @@
+name: mcp033-giantswarm
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.11.0
+    container_name: mcp033-gs-prom
+    ports: ["19093:9090"]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./rules.yml:/etc/prometheus/rules.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.listen-address=0.0.0.0:9090
+    networks: [obs]
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: mcp033-gs-am
+    ports: ["19094:9093"]
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    networks: [obs]
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: mcp033-gs-node
+    networks: [obs]
+
+  mcp:
+    image: local/mcp-prometheus:latest
+    container_name: mcp033-gs-mcp
+    depends_on: [prometheus, alertmanager]
+    environment:
+      PROMETHEUS_URL: http://prometheus:9090
+    command:
+      - serve
+      - --transport=streamable-http
+      - --http-addr=0.0.0.0:8080
+    ports: ["18083:8080"]
+    networks: [obs]
+
+networks:
+  obs:

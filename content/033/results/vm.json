@@ -1,0 +1,49 @@
+{
+  "initOk": true,
+  "serverInfo": {
+    "name": "VictoriaMetrics",
+    "version": "v1.20.2 (date: 2026-04-15T17:23:57Z)"
+  },
+  "toolCount": 16,
+  "tools": [
+    "active_queries",
+    "alerts",
+    "documentation",
+    "explain_query",
+    "label_values",
+    "labels",
+    "metric_statistics",
+    "metrics",
+    "metrics_metadata",
+    "prettify_query",
+    "query",
+    "query_range",
+    "rules",
+    "series",
+    "top_queries",
+    "tsdb_status"
+  ],
+  "calls": [
+    {
+      "name": "query",
+      "ok": true,
+      "preview": "{\"status\":\"success\",\"data\":{\"resultType\":\"vector\",\"result\":[{\"metric\":{\"__name__\":\"up\",\"instance\":\"node-exporter:9100\",\"job\":\"node\"},\"value\":[1776365986,\"1\"]}]},\"stats\":{\"seriesFetched\": \"1\",\"executionTimeMsec\":0}}"
+    },
+    {
+      "name": "metrics",
+      "ok": true,
+      "preview": "{\"status\":\"success\",\"data\":[\"flag\",\"go_cgo_calls_count\",\"go_cpu_count\",\"go_gc_cpu_seconds_total\",\"go_gc_duration_seconds\",\"go_gc_duration_seconds_count\",\"go_gc_duration_seconds_sum\",\"go_gc_forced_count\",\"go_gc_mark_assist_cpu_seconds_total\",\"go_gc_pauses_seconds_bucket\",\"go_gomaxprocs\",\"go_goroutine..."
+    },
+    {
+      "name": "labels",
+      "ok": true,
+      "preview": "{\"status\":\"success\",\"data\":[\"GOARCH\",\"GOOS\",\"__name__\",\"addr\",\"address\",\"adminstate\",\"app_version\",\"bios_date\",\"bios_release\",\"bios_vendor\",\"bios_version\",\"board_asset_tag\",\"board_name\",\"board_vendor\",\"board_version\",\"branch\",\"broadcast\",\"capacity_level\",\"cause\",\"chassis_asset_tag\",\"chassis_vendor\",..."
+    },
+    {
+      "name": "tsdb_status",
+      "ok": true,
+      "preview": "{\"status\":\"success\",\"data\":{\"totalSeries\":2171,\"totalLabelValuePairs\":9379,\"seriesCountByMetricName\":[{\"name\":\"flag\",\"value\":230},{\"name\":\"node_cpu_seconds_total\",\"value\":192},{\"name\":\"vm_http_requests_total\",\"value\":77},{\"name\":\"node_cpu_guest_seconds_total\",\"value\":48},{\"name\":\"node_cpu_scaling_go..."
+    }
+  ],
+  "stderrTail": "\",\\\\\\\"value\\\\\\\":48},{\\\\\\\"name\\\\\\\":\\\\\\\"__name__=node_cpu_scaling_governor\\\\\\\",\\\\\\\"value\\\\\\\":48}],\\\\\\\"labelValueCountByLabelName\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"__name__\\\\\\\",\\\\\\\"value\\\\\\\":538},{\\\\\\\"name\\\\\\\":\\\\\\\"name\\\\\\\",\\\\\\\"value\\\\\\\":267},{\\\\\\\"name\\\\\\\":\\\\\\\"path\\\\\\\",\\\\\\\"value\\\\\\\":79},{\\\\\\\"name\\\\\\\":\\\\\\\"value\\\\\\\",\\\\\\\"value\\\\\\\":58},{\\\\\\\"name\\\\\\\":\\\\\\\"type\\\\\\\",\\\\\\\"value\\\\\\\":56},{\\\\\\\"name\\\\\\\":\\\\\\\"collector\\\\\\\",\\\\\\\"value\\\\\\\":46},{\\\\\\\"name\\\\\\\":\\\\\\\"le\\\\\\\",\\\\\\\"value\\\\\\\":31},{\\\\\\\"name\\\\\\\":\\\\\\\"cpu\\\\\\\",\\\\\\\"value\\\\\\\":24},{\\\\\\\"name\\\\\\\":\\\\\\\"location\\\\\\\",\\\\\\\"value\\\\\\\":16},{\\\\\\\"name\\\\\\\":\\\\\\\"reason\\\\\\\",\\\\\\\"value\\\\\\\":14}]}}\\\"}]}\"\ntime=2026-04-16T18:59:46.780Z level=INFO msg=\"Tool called\" request_id=6 tool_name=tsdb_status is_error=false\ntime=2026-04-16T18:59:46.782Z level=INFO msg=\"Session unregistered\" session_id=stdio\n"
+}

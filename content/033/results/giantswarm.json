@@ -1,0 +1,56 @@
+{
+  "initOk": true,
+  "serverInfo": {
+    "name": "mcp-prometheus",
+    "version": "dev"
+  },
+  "toolCount": 18,
+  "tools": [
+    "check_ready",
+    "execute_query",
+    "execute_range_query",
+    "find_series",
+    "get_alertmanagers",
+    "get_alerts",
+    "get_build_info",
+    "get_config",
+    "get_flags",
+    "get_metric_metadata",
+    "get_rules",
+    "get_runtime_info",
+    "get_targets",
+    "get_targets_metadata",
+    "get_tsdb_stats",
+    "list_label_names",
+    "list_label_values",
+    "query_exemplars"
+  ],
+  "calls": [
+    {
+      "name": "execute_query",
+      "ok": true,
+      "preview": "Query executed successfully.\nResult Type: vector\nResult: up{instance=\"node-exporter:9100\", job=\"node\"} => 1 @[1776365945.738]\nup{instance=\"localhost:9090\", job=\"prometheus\"} => 1 @[1776365945.738]\nup{instance=\"alertmanager:9093\", job=\"alertmanager\"} => 1 @[1776365945.738]"
+    },
+    {
+      "name": "get_alerts",
+      "ok": true,
+      "preview": "Active Alerts:\n{Alerts:[{ActiveAt:2026-04-16 18:58:23.688172187 +0000 UTC Annotations:{description=\"Used to verify the MCP alerts tool from content/033\", summary=\"Synthetic alert that is always firing\"} Labels:{alertname=\"AlwaysFiring\", severity=\"critical\", team=\"observability\"} State:firing Value:1..."
+    },
+    {
+      "name": "get_rules",
+      "ok": true,
+      "preview": "Prometheus Rules:\n{Groups:[{Name:demo File:/etc/prometheus/rules.yml Interval:5 Rules:[{Name:AlwaysFiring Query:vector(1) Duration:0 Labels:{severity=\"critical\", team=\"observability\"} Annotations:{description=\"Used to verify the MCP alerts tool from content/033\", summary=\"Synthetic alert that is alw..."
+    },
+    {
+      "name": "get_alertmanagers",
+      "ok": true,
+      "preview": "AlertManager Discovery:\n{Active:[{URL:http://alertmanager:9093/api/v2/alerts}] Dropped:[]}"
+    },
+    {
+      "name": "list_label_names",
+      "ok": true,
+      "preview": "Found 94 label names:\n1. __name__\n2. address\n3. adminstate\n4. alertmanager\n5. alertname\n6. alertstate\n7. bios_date\n8. bios_release\n9. bios_vendor\n10. bios_version\n11. board_asset_tag\n12. board_name\n13. board_vendor\n14. board_version\n15. branch\n16. broadcast\n17. call\n18. capacity_level\n19. cause\n20. ..."
+    }
+  ],
+  "stderrTail": "time=2026-04-16T18:59:05.731Z level=INFO msg=\"Prometheus configuration\" url=http://prometheus:9090 auth=none org_id=\"\"\ntime=2026-04-16T18:59:05.732Z level=INFO msg=\"Observability server listening\" addr=:9091\ntime=2026-04-16T18:59:05.732Z level=INFO msg=\"Starting MCP Prometheus server\" transport=stdio\ntime=2026-04-16T18:59:05.744Z level=INFO msg=\"Server stopped normally\"\ntime=2026-04-16T18:59:05.744Z level=INFO msg=\"Server gracefully stopped\"\n"
+}

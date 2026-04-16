@@ -1,0 +1,62 @@
+{
+  "initOk": true,
+  "serverInfo": {
+    "name": "prometheus-mcp-server",
+    "title": "Prometheus MCP Server",
+    "version": "(version=0.17.0, build_date=2026-03-21T04:24:53Z, commit=b94460ef44924a17550452d00e04efb8d86f305c, docs_commit=d7d71c54ada7188bd8d17e2f7de6caad2c991245)"
+  },
+  "toolCount": 28,
+  "tools": [
+    "alertmanagers",
+    "build_info",
+    "clean_tombstones",
+    "config",
+    "delete_series",
+    "docs_list",
+    "docs_read",
+    "docs_search",
+    "exemplar_query",
+    "flags",
+    "healthy",
+    "label_names",
+    "label_values",
+    "list_alerts",
+    "list_rules",
+    "list_targets",
+    "metric_metadata",
+    "query",
+    "quit",
+    "range_query",
+    "ready",
+    "reload",
+    "runtime_info",
+    "series",
+    "snapshot",
+    "targets_metadata",
+    "tsdb_stats",
+    "wal_replay_status"
+  ],
+  "calls": [
+    {
+      "name": "query",
+      "ok": true,
+      "preview": "{\"result\":\"{span_name=\\\"GET /api/fast\\\"} =\\u003e 2.6363636363636362 @[1776366757.761]\\n{span_name=\\\"GET /api/flaky\\\"} =\\u003e 0.5272727272727272 @[1776366757.761]\\n{span_name=\\\"GET /api/medium\\\"} =\\u003e 1.0545454545454545 @[1776366757.761]\\n{span_name=\\\"GET /api/slow\\\"} =\\u003e 0.5272727272727272 @..."
+    },
+    {
+      "name": "query",
+      "ok": true,
+      "preview": "{\"result\":\"{} =\\u003e 0.04511278195488722 @[1776366757.765]\",\"warnings\":null}"
+    },
+    {
+      "name": "query",
+      "ok": true,
+      "preview": "{\"result\":\"{span_name=\\\"GET /api/fast\\\"} =\\u003e 23.878865979381445 @[1776366757.766]\\n{span_name=\\\"GET /api/flaky\\\"} =\\u003e 230.22727272727272 @[1776366757.766]\\n{span_name=\\\"GET /api/medium\\\"} =\\u003e 235.5 @[1776366757.766]\\n{span_name=\\\"GET /api/slow\\\"} =\\u003e 1838.8888888888887 @[1776366757.7..."
+    },
+    {
+      "name": "query",
+      "ok": true,
+      "preview": "{\"result\":\"{span_name=\\\"GET /api/slow\\\"} =\\u003e 1838.8888888888887 @[1776366757.766]\",\"warnings\":null}"
+    }
+  ],
+  "stderrTail": "9:12:37.747Z level=INFO source=server.go:1017 msg=\"server connecting\"\ntime=2026-04-16T19:12:37.747Z level=INFO source=server.go:975 msg=\"server session connected\" go_sdk_logger.session_id=\"\"\ntime=2026-04-16T19:12:37.747Z level=INFO source=tls_config.go:354 msg=\"Listening on\" address=[::]:8080\ntime=2026-04-16T19:12:37.747Z level=INFO source=tls_config.go:357 msg=\"TLS is disabled.\" http2=false address=[::]:8080\ntime=2026-04-16T19:12:37.755Z level=INFO source=server.go:1056 msg=\"session initialized\"\ntime=2026-04-16T19:12:37.767Z level=INFO source=server.go:991 msg=\"server session disconnected\" go_sdk_logger.session_id=\"\"\ntime=2026-04-16T19:12:37.767Z level=INFO source=server.go:958 msg=\"server session ended\"\ntime=2026-04-16T19:12:37.767Z level=INFO source=main.go:336 msg=\"See you next time!\"\n"
+}

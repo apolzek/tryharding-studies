@@ -5,6 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     INSIGHTFACE_HOME=/models
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
         python3 python3-pip python3-dev \
         libgl1 libglib2.0-0 libgomp1 \
         libxext6 libsm6 libxrender1 \

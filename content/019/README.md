@@ -1,51 +1,86 @@
-## Latency effects between OpenTelemetry Collectors with Toxiproxy
+# Does injected latency cause queue buildup between OTel collectors?
 
-### Objectives
+> **Author:** Vinícius Gomes Batista (*apolzek*)
 
-Demonstrate how artificial network latency injected **between two OpenTelemetry Collectors** affects trace delivery, metric freshness, and collector behaviour. Latency is injected with [Toxiproxy](https://github.com/Shopify/toxiproxy) so it can be changed at runtime without restarting any collector. The PoC explores how batch processors, gRPC deadlines, retry budgets and sending queues react to progressively worse network conditions — from 0 ms to 2 s with jitter.
+This PoC answers a single question: **when the network between two OpenTelemetry collectors gets slower, does the exporter's sending queue start to grow?** Latency is injected with [Toxiproxy](https://github.com/Shopify/toxiproxy) between `collector-1` (edge) and `collector-2` (aggregator), and the `otelcol_exporter_queue_size` metric on `collector-1` is sampled while each latency scenario runs. The goal is not to break the pipeline — it is to see at which point added RTT stops being absorbed by the batch processor and starts showing up as queued work.
 
-### Prerequisites
+## Objectives
 
-- docker
-- docker compose
-- curl and jq (for driving the Toxiproxy API and Prometheus queries)
+- Measure whether added network latency produces backlog on `collector-1`'s sending queue
+- Identify the latency threshold at which the queue stops draining as fast as it fills
+- Observe send failures / dropped spans when the retry budget is exhausted
+- Do it all via `docker compose` so no tooling is required on the host beyond Docker
 
-### Architecture
+## Prerequisites
+
+- Docker 20.10+ with Compose v2
+- ~1 GB free RAM
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph GEN["Telemetry generators"]
+        TG1["telemetrygen traces"]
+        TG2["telemetrygen metrics"]
+        TG3["telemetrygen logs"]
+    end
+
+    C1["collector-1<br/>(edge)<br/>:4317 / :4318<br/>internal :8888"]
+    TP["Toxiproxy<br/>API :8474<br/>proxy :14317"]
+    C2["collector-2<br/>(aggregator)<br/>:4317<br/>internal :8888"]
+
+    subgraph BACK["Backends"]
+        J["Jaeger<br/>:16686"]
+        P["Prometheus<br/>:9090"]
+        F["File exporter<br/>logs.json"]
+    end
+
+    CL["client<br/>(curl + jq helper)"]
+
+    TG1 & TG2 & TG3 -->|OTLP gRPC| C1
+    C1 -->|OTLP gRPC| TP
+    TP -->|OTLP gRPC<br/>+ injected latency| C2
+    C2 --> J
+    C2 --> P
+    C2 --> F
+
+    CL -.->|manage toxics| TP
+    CL -.->|scrape queue_size| C1
+    P -.->|scrape| C1
+    P -.->|scrape| C2
+```
+
+Signal flow: `generators → collector-1 → [Toxiproxy adds latency] → collector-2 → Jaeger / Prometheus / file`.
+
+The `client` service is a long-running Alpine container with `curl` and `jq`; every operation in the test script runs through `docker compose exec client`, so Toxiproxy and the collector's `/metrics` endpoint are always reached from inside the compose network.
+
+## Project layout
 
 ```
-┌──────────────┐          ┌────────────────────────┐
-│ telemetrygen │          │  Backends              │
-│  traces      │          │  ┌──────────────────┐  │
-│  metrics     │          │  │ Jaeger  :16686   │  │
-│  logs        │          │  └──────────────────┘  │
-└──────┬───────┘          │  ┌──────────────────┐  │
-       │ OTLP gRPC        │  │ Prometheus :9090 │  │
-       ▼ :4317            │  └──────────────────┘  │
-┌──────────────┐          └──────────▲─────────────┘
-│ collector-1  │  OTLP gRPC          │ OTLP gRPC
-│  (edge)      │ ──────────────►  ┌──┴────────────┐
-│  :4317/4318  │    Toxiproxy     │  collector-2  │
-└──────────────┘    :14317        │  (aggregator) │
-                        ▲         └───────────────┘
-                        │
-               ┌────────┴───────┐
-               │   Toxiproxy    │
-               │   :8474 (API)  │
-               │   :14317 (prx) │
-               └────────────────┘
+.
+├── docker-compose.yml
+├── test-latency.sh              # driver script — runs every scenario through `docker compose exec`
+├── config/
+│   ├── otel-collector-1.yaml    # edge collector, exposes internal metrics on :8888
+│   ├── otel-collector-2.yaml    # aggregator collector
+│   └── prometheus.yml
+└── toxiproxy/
+    ├── toxiproxy.json           # declares the otel-collector proxy (14317 → otel-collector-2:4317)
+    └── setup.sh                 # creates the initial latency toxic on boot
 ```
 
-Signal flow: `Generator → collector-1 → [Toxiproxy injects latency] → collector-2 → Jaeger / Prometheus / File`
+The edge collector (`collector-1`) has an explicit `sending_queue` (`queue_size: 1000`, `num_consumers: 2`) and a 60 s retry budget, so queue growth and dropped batches are both observable.
 
-### Reproducing
+## Reproducing
 
-Start the stack:
+Bring the stack up:
 
 ```bash
 docker compose up -d
 ```
 
-Run all latency scenarios sequentially:
+Run every scenario in sequence:
 
 ```bash
 ./test-latency.sh
@@ -54,15 +89,40 @@ Run all latency scenarios sequentially:
 Run a single scenario:
 
 ```bash
-./test-latency.sh baseline    # 0ms
-./test-latency.sh low         # 50ms  ± 10ms
-./test-latency.sh medium      # 200ms ± 30ms
-./test-latency.sh high        # 800ms ± 100ms
-./test-latency.sh critical    # 2000ms ± 500ms
+./test-latency.sh baseline    # 0 ms
+./test-latency.sh low         # 50 ms   ± 10 ms
+./test-latency.sh medium      # 200 ms  ± 30 ms
+./test-latency.sh high        # 800 ms  ± 100 ms
+./test-latency.sh critical    # 2000 ms ± 500 ms
 ./test-latency.sh restore     # remove all toxics
 ```
 
-Inspect results in:
+The script runs every command (toxiproxy API calls and `/metrics` scrapes) inside the compose network via `docker compose exec client …` — the host only needs Docker.
+
+For each scenario it:
+
+1. removes any existing toxic and waits 15 s for the queue to drain,
+2. applies the latency toxic,
+3. samples `otelcol_exporter_queue_size` every 3 s for 45 s,
+4. records the peak queue size and the number of `send_failed_spans` accumulated during the window,
+5. prints a comparison table at the end.
+
+## Manual inspection
+
+```bash
+# Toxics currently applied
+docker compose exec client curl -s http://toxiproxy:8474/proxies/otel-collector/toxics | jq
+
+# Change latency at runtime without restarting anything
+docker compose exec client curl -s -X POST http://toxiproxy:8474/proxies/otel-collector/toxics/latency \
+  -H 'Content-Type: application/json' \
+  -d '{"attributes":{"latency":300,"jitter":50}}'
+
+# Look at the queue size right now
+docker compose exec client sh -c 'curl -s http://otel-collector-1:8888/metrics | grep ^otelcol_exporter_queue_size'
+```
+
+Dashboards:
 
 | UI | URL |
 |---|---|
@@ -70,51 +130,40 @@ Inspect results in:
 | Prometheus | http://localhost:9090 |
 | Toxiproxy API | http://localhost:8474/proxies |
 
-Change the latency at runtime via the Toxiproxy management API:
-
-```bash
-# List current toxics
-curl http://localhost:8474/proxies/otel-collector/toxics | jq
-
-# Update existing toxic
-curl -X POST http://localhost:8474/proxies/otel-collector/toxics/latency \
-  -H "Content-Type: application/json" \
-  -d '{"attributes":{"latency":300,"jitter":50}}'
-
-# Remove toxic (restore baseline)
-curl -X DELETE http://localhost:8474/proxies/otel-collector/toxics/latency
-```
-
-Observe drops and queue growth with:
+Relevant PromQL:
 
 ```promql
 otelcol_exporter_queue_size{exporter="otlp"}
-otelcol_exporter_send_failed_spans_total
+otelcol_exporter_queue_capacity{exporter="otlp"}
+rate(otelcol_exporter_send_failed_spans_total{exporter="otlp"}[1m])
 ```
 
-### Results
+## Reading the results
 
-| Scenario | Latency | Jitter | Data loss | Queue pressure | Visible in Jaeger |
-|---|---|---|---|---|---|
-| Baseline | 0 ms | 0 ms | None | None | Yes (within 5 s) |
-| Low | 50 ms | ±10 ms | None | Negligible | Yes |
-| Medium | 200 ms | ±30 ms | None | Mild growth | Yes, delayed |
-| High | 800 ms | ±100 ms | Possible | Significant | Intermittent gaps |
-| Critical | 2000 ms | ±500 ms | Yes (drops) | Overflow / backpressure | Missing spans |
+The output table has one row per scenario with peak queue size and dropped spans:
 
-Key takeaways:
+| scenario | latency | jitter | peak queue_size | failed_spans |
+|---|---|---|---|---|
+| baseline | 0 ms | ±0 ms | ~0 | 0 |
+| low | 50 ms | ±10 ms | ~0 | 0 |
+| medium | 200 ms | ±30 ms | small growth | 0 |
+| high | 800 ms | ±100 ms | sustained growth | possibly > 0 |
+| critical | 2000 ms | ±500 ms | near queue_capacity | > 0 |
 
-1. **The `batch` processor masks small latencies.** With `timeout: 5s`, any network delay below a few hundred milliseconds is invisible in practice — the batch window dominates end-to-end telemetry age.
-2. **gRPC deadline is the hard limit.** The OTLP exporter's gRPC call deadline determines when a batch is abandoned and retried. Defaults are generous (~5–10 s) but finite — persistent high latency will exhaust them.
-3. **Retry budget is not infinite.** `retry_on_failure` has a maximum elapsed time (default 300 s). After that, data is silently dropped unless the pipeline uses a persistent queue.
-4. **Backpressure propagates upstream.** When `collector-1`'s sending queue fills, it applies backpressure to the receiver, causing the generator to experience gRPC `ResourceExhausted`.
-5. **Use a persistent queue for high-latency links.** Configure `sending_queue.storage` with a file-storage extension to survive transient network partitions without data loss.
+What the numbers mean:
 
-### References
+- **peak queue_size ≈ 0** — each export finishes before the next batch is enqueued. The batch processor's 5 s window absorbs the extra RTT; latency is invisible to the pipeline.
+- **peak queue_size grows but stable** — exports take long enough that batches pile up, but `num_consumers` still drains the queue at roughly the incoming rate. Data is delayed, not lost.
+- **peak queue_size approaches `queue_capacity`** — the queue fills faster than it drains. Backpressure starts propagating to the receiver; new batches are rejected.
+- **failed_spans > 0** — the 60 s retry budget ran out. Those spans are gone.
+
+So the answer to the motivating question is not a yes/no: it's a threshold. Below that threshold, added latency is fully absorbed by batching + gRPC; above it, queue growth is linear in the gap between ingress rate and export rate, and eventually hits capacity.
+
+## References
 
 ```
 🔗 https://github.com/Shopify/toxiproxy
 🔗 https://opentelemetry.io/docs/collector/configuration/#processors
 🔗 https://github.com/open-telemetry/opentelemetry-collector/blob/main/exporter/exporterhelper/README.md
-🔗 https://opentelemetry.io/docs/collector/configuration/#persistent-queue
+🔗 https://opentelemetry.io/docs/collector/internal-telemetry/
 ```

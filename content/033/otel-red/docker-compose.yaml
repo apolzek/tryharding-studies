@@ -1,0 +1,88 @@
+name: mcp033-otel-red
+
+services:
+  app:
+    build: ./app
+    container_name: mcp033-otel-app
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_SERVICE_NAME: demo-app
+      OTEL_METRIC_EXPORT_INTERVAL: "5000"
+    depends_on: [otel-collector]
+    ports: ["18000:8000"]
+    networks: [obs]
+
+  loadgen:
+    build: ./loadgen
+    container_name: mcp033-otel-loadgen
+    environment:
+      TARGET: http://app:8000
+    depends_on: [app]
+    networks: [obs]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.118.0
+    container_name: mcp033-otel-col
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    ports: ["18889:8889"]
+    networks: [obs]
+
+  prometheus:
+    image: prom/prometheus:v3.11.0
+    container_name: mcp033-otel-prom
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./rules.yml:/etc/prometheus/rules.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.listen-address=0.0.0.0:9090
+    ports: ["19096:9090"]
+    networks: [obs]
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: mcp033-otel-am
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
+    ports: ["19097:9093"]
+    networks: [obs]
+
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.108.0
+    container_name: mcp033-otel-vm
+    command:
+      - --storageDataPath=/storage
+      - --httpListenAddr=:8428
+      - --retentionPeriod=1d
+    ports: ["18429:8428"]
+    networks: [obs]
+
+  vmagent:
+    image: victoriametrics/vmagent:v1.108.0
+    container_name: mcp033-otel-vmagent
+    depends_on: [victoriametrics, otel-collector]
+    command:
+      - --promscrape.config=/etc/vmagent/vmagent.yml
+      - --remoteWrite.url=http://victoriametrics:8428/api/v1/write
+    volumes:
+      - ./vmagent.yml:/etc/vmagent/vmagent.yml:ro
+    networks: [obs]
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: mcp033-otel-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./datasource.yml:/etc/grafana/provisioning/datasources/ds.yml:ro
+    ports: ["19098:3000"]
+    networks: [obs]
+
+networks:
+  obs:

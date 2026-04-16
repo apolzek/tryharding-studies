@@ -1,0 +1,45 @@
+name: mcp033-grafana
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.11.0
+    container_name: mcp033-gf-prom
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.listen-address=0.0.0.0:9090
+    networks: [obs]
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: mcp033-gf-node
+    networks: [obs]
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: mcp033-gf-grafana
+    ports: ["19095:3000"]
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - ./datasource.yml:/etc/grafana/provisioning/datasources/ds.yml:ro
+    networks: [obs]
+
+  mcp:
+    image: grafana/mcp-grafana:latest
+    container_name: mcp033-gf-mcp
+    depends_on: [grafana]
+    environment:
+      GRAFANA_URL: http://grafana:3000
+      GRAFANA_USERNAME: admin
+      GRAFANA_PASSWORD: admin
+    command: ["-t", "streamable-http", "--log-level", "info"]
+    ports: ["18085:8000"]
+    networks: [obs]
+
+networks:
+  obs:

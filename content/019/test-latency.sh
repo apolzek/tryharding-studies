@@ -1,27 +1,34 @@
 #!/bin/bash
-# test-latency.sh — Documented latency effect tests between OTel collectors via Toxiproxy
+# test-latency.sh — Does injected latency between two OTel collectors produce queue buildup?
 #
-# Scenarios tested:
-#   0. baseline   — 0ms   (no latency)
-#   1. low        — 50ms  (acceptable)
-#   2. medium     — 200ms (noticeable)
-#   3. high       — 800ms (degraded)
-#   4. critical   — 2000ms (near-breaking)
-#   5. restore    — back to baseline
+# Runs every command via `docker compose exec` on a helper `client` container (alpine + curl + jq),
+# so no tools are required on the host besides docker and docker compose.
 #
-# Usage: ./test-latency.sh [scenario]
-#   e.g. ./test-latency.sh 0  -> run only baseline
-#        ./test-latency.sh    -> run all scenarios sequentially
+# For each scenario the script:
+#   1. clears any existing toxic
+#   2. waits for the sending queue to drain
+#   3. applies the latency toxic
+#   4. samples otelcol_exporter_queue_size on collector-1 every few seconds
+#   5. records the peak queue size and any send failures
+#   6. prints a comparison table at the end
+#
+# Usage:
+#   ./test-latency.sh            # run all scenarios
+#   ./test-latency.sh medium     # run a single scenario
+#   ./test-latency.sh restore    # remove all toxics
 
 set -euo pipefail
 
-TOXIPROXY_API="http://localhost:8474"
-JAEGER_API="http://localhost:16686"
-PROM_API="http://localhost:9090"
+COMPOSE=(docker compose)
+CLIENT=("${COMPOSE[@]}" exec -T client)
+TOXIPROXY_URL="http://toxiproxy:8474"
+COLLECTOR1_METRICS="http://otel-collector-1:8888/metrics"
 PROXY_NAME="otel-collector"
 TOXIC_NAME="latency"
-WAIT_SECS=15        # seconds to observe after each change
-SEPARATOR="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+OBSERVE_SECS=45        # total time each scenario runs
+SAMPLE_INTERVAL=3      # seconds between queue_size samples
+DRAIN_SECS=15          # wait between scenarios so queue goes back to baseline
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -29,234 +36,156 @@ log()  { echo -e "\033[1;34m[INFO]\033[0m  $*"; }
 ok()   { echo -e "\033[1;32m[ OK ]\033[0m  $*"; }
 warn() { echo -e "\033[1;33m[WARN]\033[0m  $*"; }
 err()  { echo -e "\033[1;31m[ERR ]\033[0m  $*"; }
-sep()  { echo -e "\033[1;37m${SEPARATOR}\033[0m"; }
+sep()  { echo -e "\033[1;37m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"; }
 
-check_deps() {
-  for cmd in curl jq bc; do
-    command -v "$cmd" &>/dev/null || { err "Missing dependency: $cmd"; exit 1; }
-  done
+# Run a command inside the helper client container.
+client_exec() {
+  "${CLIENT[@]}" sh -c "$*"
 }
 
-check_services() {
-  log "Checking that all services are reachable..."
-  local ok=true
-
-  curl -sf "${TOXIPROXY_API}/proxies" > /dev/null 2>&1 \
-    && ok "Toxiproxy  : ${TOXIPROXY_API}" \
-    || { warn "Toxiproxy not reachable at ${TOXIPROXY_API}. Is the stack running?"; ok=false; }
-
-  curl -sf "${JAEGER_API}/api/services" > /dev/null 2>&1 \
-    && ok "Jaeger     : ${JAEGER_API}" \
-    || warn "Jaeger not reachable at ${JAEGER_API}"
-
-  curl -sf "${PROM_API}/-/ready" > /dev/null 2>&1 \
-    && ok "Prometheus : ${PROM_API}" \
-    || warn "Prometheus not reachable at ${PROM_API}"
-
-  [[ "$ok" == "false" ]] && { err "Required services not running. Start with: docker compose up -d"; exit 1; }
+check_stack() {
+  log "Verifying the compose stack is up..."
+  if ! "${COMPOSE[@]}" ps --status=running --services | grep -q '^client$'; then
+    err "The 'client' service is not running. Bring the stack up first:"
+    err "    docker compose up -d"
+    exit 1
+  fi
+  client_exec "curl -sf ${TOXIPROXY_URL}/proxies > /dev/null" \
+    && ok "Toxiproxy reachable from client container" \
+    || { err "Toxiproxy not reachable from client. Is the stack healthy?"; exit 1; }
+  client_exec "curl -sf ${COLLECTOR1_METRICS} > /dev/null" \
+    && ok "Collector-1 internal metrics reachable" \
+    || { err "Collector-1 :8888/metrics not reachable"; exit 1; }
   echo ""
 }
 
-# Remove existing toxic (ignore errors if it doesn't exist)
-remove_toxic() {
-  curl -sf -X DELETE "${TOXIPROXY_API}/proxies/${PROXY_NAME}/toxics/${TOXIC_NAME}" \
-    > /dev/null 2>&1 || true
+# Extract a single numeric metric value (first matching line) from /metrics.
+scrape_metric() {
+  local metric="$1"
+  client_exec "curl -sf ${COLLECTOR1_METRICS} \
+    | grep -E '^${metric}[ {]' \
+    | awk '{ sum += \$NF } END { if (NR==0) print 0; else print sum }'"
 }
 
-# Set latency toxic: set_latency <latency_ms> <jitter_ms>
-set_latency() {
+remove_toxic() {
+  client_exec "curl -sf -X DELETE ${TOXIPROXY_URL}/proxies/${PROXY_NAME}/toxics/${TOXIC_NAME} > /dev/null 2>&1 || true"
+}
+
+apply_toxic() {
   local lat="$1" jitter="$2"
   remove_toxic
-  if [[ "$lat" -gt 0 ]]; then
-    curl -sf -X POST "${TOXIPROXY_API}/proxies/${PROXY_NAME}/toxics" \
-      -H "Content-Type: application/json" \
-      -d "{
-        \"name\": \"${TOXIC_NAME}\",
-        \"type\": \"latency\",
-        \"stream\": \"upstream\",
-        \"toxicity\": 1.0,
-        \"attributes\": {\"latency\": ${lat}, \"jitter\": ${jitter}}
-      }" > /dev/null
-  fi
+  [[ "$lat" -eq 0 ]] && return 0
+  client_exec "curl -sf -X POST ${TOXIPROXY_URL}/proxies/${PROXY_NAME}/toxics \
+    -H 'Content-Type: application/json' \
+    -d '{\"name\":\"${TOXIC_NAME}\",\"type\":\"latency\",\"stream\":\"upstream\",\"toxicity\":1.0,\"attributes\":{\"latency\":${lat},\"jitter\":${jitter}}}' \
+    > /dev/null"
 }
 
-get_current_latency() {
-  local info
-  info=$(curl -sf "${TOXIPROXY_API}/proxies/${PROXY_NAME}/toxics" 2>/dev/null) || { echo "0"; return; }
-  echo "$info" | jq -r '.[] | select(.name=="latency") | .attributes.latency' 2>/dev/null || echo "0"
-}
-
-# Measure round-trip export latency: time a telemetrygen burst to appear in Jaeger
-measure_trace_arrival() {
-  local scenario="$1"
-  local tag="latency-test-${scenario}-$(date +%s)"
-
-  log "Sending 1 trace burst tagged service=${tag}..."
-  local t_start t_end elapsed
-
-  t_start=$(date +%s%3N)
-
-  # Send a single trace via telemetrygen (if available) or via direct OTLP HTTP
-  if command -v telemetrygen &>/dev/null; then
-    telemetrygen traces \
-      --otlp-endpoint localhost:4317 \
-      --otlp-insecure \
-      --duration 1s \
-      --rate 1 \
-      --service "${tag}" > /dev/null 2>&1 || true
-  else
-    # Fallback: use docker exec to run telemetrygen from existing container
-    docker compose exec -T telemetrygen-traces sh -c \
-      "telemetrygen traces --otlp-endpoint otel-collector-1:4317 --otlp-insecure --duration=1s --rate=1 --service=${tag}" \
-      > /dev/null 2>&1 || true
-  fi
-
-  t_end=$(date +%s%3N)
-  elapsed=$(( t_end - t_start ))
-  echo "$elapsed"
-}
-
-# Query collector export success metric from Prometheus
-get_collector_export_metric() {
-  local metric="otel_exporter_sent_spans_total"
-  curl -sf "${PROM_API}/api/v1/query?query=${metric}" 2>/dev/null \
-    | jq -r '.data.result[0].value[1] // "N/A"' 2>/dev/null || echo "N/A"
-}
-
-# Query Toxiproxy for bytes transferred (indirect proxy health)
-get_proxy_stats() {
-  curl -sf "${TOXIPROXY_API}/proxies/${PROXY_NAME}" 2>/dev/null \
-    | jq '{enabled: .enabled, upstream: .upstream}' 2>/dev/null || echo "{}"
-}
-
-# Wait and show a countdown
-observe() {
-  local secs="$1" label="$2"
-  log "Observing for ${secs}s — ${label}"
-  for i in $(seq "$secs" -1 1); do
-    printf "\r    %ds remaining..." "$i"
-    sleep 1
+# Sample queue_size every SAMPLE_INTERVAL seconds for OBSERVE_SECS and print peak.
+observe_queue() {
+  local secs="$1"
+  local peak=0 cur sample
+  local end=$(( $(date +%s) + secs ))
+  while [[ $(date +%s) -lt $end ]]; do
+    cur=$(scrape_metric "otelcol_exporter_queue_size" | tr -d '[:space:]')
+    cur=${cur%.*}
+    [[ -z "$cur" ]] && cur=0
+    (( cur > peak )) && peak=$cur
+    printf "\r    queue_size = %4d   (peak so far: %4d)   %ds left " \
+      "$cur" "$peak" "$(( end - $(date +%s) ))"
+    sleep "$SAMPLE_INTERVAL"
   done
   echo ""
+  echo "$peak"
 }
 
 # ─── scenario runner ──────────────────────────────────────────────────────────
 
+declare -a RESULTS
+
 run_scenario() {
-  local name="$1" lat="$2" jitter="$3" expected="$4"
+  local name="$1" lat="$2" jitter="$3"
 
   sep
-  echo ""
-  log "SCENARIO: ${name}"
-  log "Latency : ${lat}ms  |  Jitter: ±${jitter}ms"
-  log "Expected: ${expected}"
+  log "SCENARIO: ${name}   latency=${lat}ms   jitter=±${jitter}ms"
   echo ""
 
-  set_latency "$lat" "$jitter"
-  sleep 1
+  log "Clearing toxic and draining queue for ${DRAIN_SECS}s..."
+  remove_toxic
+  sleep "$DRAIN_SECS"
 
-  local actual_lat
-  actual_lat=$(get_current_latency)
-  ok "Toxic applied — current toxic latency: ${actual_lat}ms"
+  local q_before failed_before
+  q_before=$(scrape_metric "otelcol_exporter_queue_size" | tr -d '[:space:]')
+  failed_before=$(scrape_metric "otelcol_exporter_send_failed_spans_total" | tr -d '[:space:]')
+  failed_before=${failed_before%.*}
+  [[ -z "$failed_before" ]] && failed_before=0
+  log "Before: queue_size=${q_before}   failed_spans_total=${failed_before}"
 
-  observe "$WAIT_SECS" "${name}"
+  apply_toxic "$lat" "$jitter"
+  ok "Toxic applied (latency=${lat}ms, jitter=${jitter}ms)"
 
-  log "Sampling collector metrics..."
-  local spans_sent
-  spans_sent=$(get_collector_export_metric)
-  log "  otel_exporter_sent_spans_total = ${spans_sent}"
+  local peak
+  peak=$(observe_queue "$OBSERVE_SECS")
 
-  local proxy_info
-  proxy_info=$(get_proxy_stats)
-  log "  Proxy state: ${proxy_info}"
+  local failed_after
+  failed_after=$(scrape_metric "otelcol_exporter_send_failed_spans_total" | tr -d '[:space:]')
+  failed_after=${failed_after%.*}
+  [[ -z "$failed_after" ]] && failed_after=0
+  local failed_delta=$(( failed_after - failed_before ))
 
+  ok "Peak queue_size during scenario: ${peak}"
+  ok "send_failed_spans during scenario: ${failed_delta}"
   echo ""
-  log "RESULT: See Jaeger UI → http://localhost:16686  |  Prometheus → http://localhost:9090"
-  echo ""
-}
 
-print_header() {
-  sep
-  echo ""
-  echo "  OTel Collector Latency Effect Tests"
-  echo "  POC-019 — Toxiproxy between collector-1 and collector-2"
-  echo ""
-  echo "  Architecture:"
-  echo "  [Generator] → [collector-1:4317] → [Toxiproxy:14317] → [collector-2:4317] → [Jaeger / Prometheus]"
-  echo ""
-  sep
-  echo ""
+  RESULTS+=("$(printf '%-10s %-10s %-10s %-18s %-10s' \
+    "$name" "${lat}ms" "±${jitter}ms" "$peak" "$failed_delta")")
 }
 
 print_summary() {
   sep
   echo ""
-  echo "  TEST SUMMARY"
+  echo "  QUEUE BUILDUP BY SCENARIO"
   echo ""
-  echo "  Latency  | Expected effect"
+  printf "  %-10s %-10s %-10s %-18s %-10s\n" \
+    "scenario" "latency" "jitter" "peak queue_size" "failed_spans"
   echo "  ─────────────────────────────────────────────────────────────────────"
-  echo "  0ms      | Baseline — negligible pipeline delay"
-  echo "  50ms     | Acceptable — within typical LAN/cluster round-trip"
-  echo "  200ms    | Noticeable — batch timeout starts masking individual spans"
-  echo "  800ms    | Degraded  — export retries begin, queue pressure increases"
-  echo "  2000ms   | Critical  — exporter timeouts likely, spans may be dropped"
+  for row in "${RESULTS[@]}"; do
+    printf "  %s\n" "$row"
+  done
   echo ""
-  echo "  KEY OBSERVATIONS:"
-  echo "  1. Batch processor timeout (5s) hides small latencies — delay ≤ 5s"
-  echo "     won't cause data loss but increases end-to-end telemetry age."
-  echo "  2. At high latency the gRPC exporter retries (default: 300s total)."
-  echo "     When the retry budget is exhausted, spans are DROPPED silently."
-  echo "  3. Jitter compounds: at 2000ms ±500ms some sends timeout (>5s gRPC"
-  echo "     deadline) and the queue fills, causing backpressure on collector-1."
-  echo "  4. Prometheus scrape of otel-collector-2 metrics becomes stale when"
-  echo "     collector-2 itself is backlogged processing buffered batches."
+  echo "  Answer the question: 'does added latency build up the exporter queue?'"
+  echo "  • peak queue_size stays near 0  → latency absorbed by batch + gRPC"
+  echo "  • peak queue_size grows         → latency slows the exporter; pressure builds"
+  echo "  • failed_spans > 0              → retry budget exhausted, items dropped"
   echo ""
   sep
-  echo ""
 }
 
 # ─── main ─────────────────────────────────────────────────────────────────────
 
-check_deps
-check_services
-print_header
+check_stack
 
 SCENARIO="${1:-all}"
 
 case "$SCENARIO" in
-  0|baseline)
-    run_scenario "BASELINE — 0ms"  0    0   "No artificial delay; spans arrive within batch timeout (5s)"
-    ;;
-  1|low)
-    run_scenario "LOW — 50ms"      50   10  "Transparent to users; small increase in span age"
-    ;;
-  2|medium)
-    run_scenario "MEDIUM — 200ms"  200  30  "Visible in Jaeger span timeline; export queue grows"
-    ;;
-  3|high)
-    run_scenario "HIGH — 800ms"    800  100 "Retry budget consumed; intermittent export failures in collector logs"
-    ;;
-  4|critical)
-    run_scenario "CRITICAL — 2s"   2000 500 "gRPC deadline exceeded; exporter drops spans; queue overflow"
-    ;;
-  5|restore)
-    remove_toxic
-    ok "All toxics removed — back to no latency."
-    ;;
+  baseline) run_scenario "baseline" 0   0   ;;
+  low)      run_scenario "low"      50  10  ;;
+  medium)   run_scenario "medium"   200 30  ;;
+  high)     run_scenario "high"     800 100 ;;
+  critical) run_scenario "critical" 2000 500 ;;
+  restore)  remove_toxic; ok "All toxics removed."; exit 0 ;;
   all)
-    run_scenario "BASELINE — 0ms"  0    0   "No artificial delay; spans arrive within batch timeout (5s)"
-    run_scenario "LOW — 50ms"      50   10  "Transparent to users; small increase in span age"
-    run_scenario "MEDIUM — 200ms"  200  30  "Visible in Jaeger span timeline; export queue grows"
-    run_scenario "HIGH — 800ms"    800  100 "Retry budget consumed; intermittent export failures in collector logs"
-    run_scenario "CRITICAL — 2s"   2000 500 "gRPC deadline exceeded; exporter drops spans; queue overflow"
-
-    log "Restoring baseline (0ms)..."
+    run_scenario "baseline" 0    0
+    run_scenario "low"      50   10
+    run_scenario "medium"   200  30
+    run_scenario "high"     800  100
+    run_scenario "critical" 2000 500
     remove_toxic
-    ok "Toxics removed — baseline restored."
+    ok "All toxics removed — stack back to baseline."
     ;;
   *)
     err "Unknown scenario: ${SCENARIO}"
-    echo "Usage: $0 [0|1|2|3|4|5|baseline|low|medium|high|critical|restore|all]"
+    echo "Usage: $0 [baseline|low|medium|high|critical|restore|all]"
     exit 1
     ;;
 esac

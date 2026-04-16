@@ -1,0 +1,51 @@
+{
+  "initOk": true,
+  "serverInfo": {
+    "name": "mcp-prometheus",
+    "version": "dev"
+  },
+  "toolCount": 18,
+  "tools": [
+    "check_ready",
+    "execute_query",
+    "execute_range_query",
+    "find_series",
+    "get_alertmanagers",
+    "get_alerts",
+    "get_build_info",
+    "get_config",
+    "get_flags",
+    "get_metric_metadata",
+    "get_rules",
+    "get_runtime_info",
+    "get_targets",
+    "get_targets_metadata",
+    "get_tsdb_stats",
+    "list_label_names",
+    "list_label_values",
+    "query_exemplars"
+  ],
+  "calls": [
+    {
+      "name": "execute_query",
+      "ok": true,
+      "preview": "Query executed successfully.\nResult Type: vector\nResult: {span_name=\"GET /api/fast\"} => 2.6363636363636362 @[1776366758.094]\n{span_name=\"GET /api/flaky\"} => 0.5272727272727272 @[1776366758.094]\n{span_name=\"GET /api/medium\"} => 1.0545454545454545 @[1776366758.094]\n{span_name=\"GET /api/slow\"} => 0.527..."
+    },
+    {
+      "name": "execute_query",
+      "ok": true,
+      "preview": "Query executed successfully.\nResult Type: vector\nResult: {} => 0.04511278195488722 @[1776366758.097]"
+    },
+    {
+      "name": "execute_query",
+      "ok": true,
+      "preview": "Query executed successfully.\nResult Type: vector\nResult: {span_name=\"GET /api/medium\"} => 235.5 @[1776366758.097]\n{span_name=\"GET /api/slow\"} => 1838.8888888888887 @[1776366758.097]\n{span_name=\"GET /api/notfound\"} => 4.75 @[1776366758.097]\n{span_name=\"GET /api/fast\"} => 23.878865979381445 @[17763667..."
+    },
+    {
+      "name": "execute_query",
+      "ok": true,
+      "preview": "Query executed successfully.\nResult Type: vector\nResult: {span_name=\"GET /api/slow\"} => 1838.8888888888887 @[1776366758.098]"
+    }
+  ],
+  "stderrTail": "time=2026-04-16T19:12:38.087Z level=INFO msg=\"Prometheus configuration\" url=http://prometheus:9090 auth=none org_id=\"\"\ntime=2026-04-16T19:12:38.087Z level=INFO msg=\"Observability server listening\" addr=:9091\ntime=2026-04-16T19:12:38.087Z level=INFO msg=\"Starting MCP Prometheus server\" transport=stdio\ntime=2026-04-16T19:12:38.099Z level=INFO msg=\"Server stopped normally\"\ntime=2026-04-16T19:12:38.099Z level=INFO msg=\"Server gracefully stopped\"\n"
+}

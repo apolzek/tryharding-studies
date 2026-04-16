@@ -1,0 +1,30 @@
+groups:
+  - name: red
+    interval: 10s
+    rules:
+      - alert: DemoAppHighErrorRate
+        expr: |
+          sum by (service_name) (rate(traces_spanmetrics_calls_total{service_name="demo-app",status_code="STATUS_CODE_ERROR"}[1m]))
+          /
+          sum by (service_name) (rate(traces_spanmetrics_calls_total{service_name="demo-app"}[1m]))
+          > 0.05
+        for: 15s
+        labels:
+          severity: warning
+          signal: red
+        annotations:
+          summary: "demo-app error rate above 5%"
+
+      - alert: DemoAppHighLatencyP95
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le, service_name) (
+              rate(traces_spanmetrics_duration_milliseconds_bucket{service_name="demo-app"}[1m])
+            )
+          ) > 300
+        for: 15s
+        labels:
+          severity: warning
+          signal: red
+        annotations:
+          summary: "demo-app p95 latency above 300ms"
