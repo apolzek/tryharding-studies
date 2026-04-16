@@ -4,11 +4,11 @@
 
 Create an observability ecosystem for PostgreSQL using containers. Ensure visibility into the database and perform load testing. Perhaps a good start would be to be able to answer questions like:
 
-- Which queries are taking the longest to execute ? average time per query (p95/p99 also important)
+- Which queries are taking the longest to execute ? average time per query (mean, min, max, stddev available via `pg_stat_statements`)
 - What is the usage of server resources (CPU, memory, IOPS, disk) ?
 - Are there any locks or blocking operations in the database ?
 - Which indexes are missing or could be optimized to improve performance ?
-- How is the database connection pool behaving (timeouts, saturation, etc.) ?
+- How are the database connections behaving (idle, active, saturation) ?
 - Are there any unusual spikes in read/write activity or error rates ?
 
 ### Services and ports
@@ -18,6 +18,7 @@ Create an observability ecosystem for PostgreSQL using containers. Ensure visibi
 | PostgreSQL          | postgresql://localhost:5432/app_db?sslmode=disable |
 | pgAdmin             | [http://localhost:8080](http://localhost:8080)     |
 | PostgreSQL Exporter | 9187                                               |
+| Node Exporter       | 9100                                               |
 | Prometheus          | [http://localhost:9090](http://localhost:9090)     |
 | Grafana             | [http://localhost:3000](http://localhost:3000)     |
 | Loki                | 3100                                               |
@@ -44,8 +45,7 @@ make stop
 
 Login database using psql
 ```sh
-docker exec -it $(docker ps | grep postgres_db | awk '{print $1}') bash
-psql -h localhost -U rinha -d app_db
+docker exec -it postgres_db psql -U rinha -d app_db
 ```
 
 ```bash

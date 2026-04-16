@@ -1,4 +1,4 @@
-## Hands-on observability: running Prometheus, Grafana, Tempo and OpenTelemetry locally with Docker Compose
+## Running Prometheus, Grafana, Tempo and OpenTelemetry locally with Docker Compose
 
 ### Objectives
 
@@ -9,10 +9,10 @@ This lab aims to test and integrate key observability tools including Prometheus
 | Grafana                             | Grafana is the open source analytics & monitoring solution for every database                                            | 3000 |
 | Grafana Loki                        | Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus            | 3100 |
 | Grafana Tempo                       | Grafana Tempo is an open source, easy-to-use, and high-scale distributed tracing backend                                 | 3200 |
-| Promtail                            | Promtail is an agent which ships the contents of local logs to a private                                                 | 9080 |
+| Promtail                            | Promtail is an agent which ships the contents of local logs to a Loki instance                                           | 9080 |
 | Prometheus                          | Power your metrics and alerting with the leading open-source monitoring solution                                         | 9090 |
 | Node exporter                       | The node_exporter is designed to monitor the host system                                                                 | 9100 |
-| OpenTelemetry Collector             | The OpenTelemetry Collector offers a vendor-agnostic implementation of how to receive, process and export telemetry data | 4317 |
+| OpenTelemetry Collector             | The OpenTelemetry Collector offers a vendor-agnostic implementation of how to receive, process and export telemetry data | 4317 / 4318 |
 | Spring Application(comment-service) | Java Spring application that sends traces to otel collector via HTTP on 4318 development                                 | 8082 |
 | Spring Application(post-service)    | Java Spring application that sends traces to otel collector via HTTP on 4318 development                                 | 8086 |
 
@@ -39,12 +39,12 @@ graph TD
 - docker
 - docker compose
 - java
-- maven/spring-boot
+- maven
 - mise(*optional*)
   
 ### Reproducing
 
-Up docker compose services and java applications
+Start all services (including Java applications) with Docker Compose
 ```bash
 docker compose up --build
 ```
@@ -78,7 +78,7 @@ mise use maven
 Run Java applications without Docker container
 ```bash
 cd apps/comment-service && mvn spring-boot:run
-cd apps/comment-service && mvn spring-boot:run
+cd apps/post-service && mvn spring-boot:run
 ```
 
 ### Results
@@ -88,7 +88,7 @@ cd apps/comment-service && mvn spring-boot:run
 The lab successfully demonstrated the integration of observability tools, with metrics, logs, and traces working seamlessly together. OpenTelemetry Collector proved to be the key component, acting as a flexible bridge between systems and enabling smooth data flow across the entire stack.
 
 ![image](./.image/traces.png) 
-![image](./.image/micromiter.png)
+![image](./.image/micrometer.png)
 ![image](./.image/metrics.png)
 ![image](./.image/logs.png)
 

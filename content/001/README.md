@@ -19,13 +19,13 @@ A Reverse Proxy, at its core, acts as an intermediary between client devices and
 On the other hand, a Load Balancer is designed to distribute incoming network traffic across multiple servers, ensuring no single server is overwhelmed with requests. This distribution of traffic helps prevent server overloads, reduces response times, and enhances the reliability and availability of web applications. Load Balancers can operate at different layers of the OSI model, directing traffic based on factors like server health, response times, or using predefined algorithms.
 
 **Load Balancing Algorithms:**
-- Round-robin (default in most)
+- Round-robin (commonly supported)
 - Least connections
 - IP hash (session affinity)
   
 
 ```mermaid
-graph 
+graph TD
     Client[Client] --> RP[reverse proxy<br/><i>path-based rule</i>]
     Client[Client] --> LB[load balancer<br/><i>round-robin</i>]
 
@@ -149,11 +149,11 @@ curl http://localhost/front-b # test
 make down service=traefik_reverse_proxy
 ```
 
-`FYI: Preferably test using curl instead browser`
+`FYI: Preferably test using curl instead of a browser`
 
 ### Results
 
-When it comes to setting up load balancers and reverse proxies, there are a lot of ways to go about it, and each tool has its own quirks and strengths. Some options, like Caddy, Envoy, and Traefik, give you the freedom to choose from a variety of configuration file formats, such as YAML, TOML, and more. This makes it easier to pick the one that suits your style or fits better with your infrastructure. On the flip side, tools like HAProxy and Nginx stick to their own formats and configurations, which might take a little more getting used to. They may feel a bit more rigid, but they make up for it with power and reliability, often becoming the go-to choices for certain situations. At the end of the day, choosing the right tool comes down to factors like ease of use, flexibility, and your specific performance needs. Understanding what each tool does best and how it likes to be configured helps you make the right call for building a scalable and efficient web infrastructure.
+When it comes to setting up load balancers and reverse proxies, there are a lot of ways to go about it, and each tool has its own quirks and strengths. Configuration formats vary significantly between them: **Caddy** uses its own Caddyfile DSL or JSON; **Envoy** is configured through YAML or JSON (with protobuf under the hood); **Traefik** is the most flexible on this front, supporting YAML, TOML, environment variables, and Docker labels for dynamic configuration. On the other side, **HAProxy** and **Nginx** stick to their own long-established configuration formats, which might take a little more getting used to. They may feel a bit more rigid, but they make up for it with power and reliability, often becoming the go-to choices for certain situations. At the end of the day, choosing the right tool comes down to factors like ease of use, flexibility, and your specific performance needs. Understanding what each tool does best and how it likes to be configured helps you make the right call for building a scalable and efficient web infrastructure.
 
 ### References
 

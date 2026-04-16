@@ -1,9 +1,9 @@
 # Use a imagem base do PostgreSQL
-FROM postgres:latest
+FROM postgres:17
 
 # Instale as dependências necessárias
 RUN apt-get update && apt-get install -y \
-    postgis \
+    postgresql-17-postgis-3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY init.sql /docker-entrypoint-initdb.d/

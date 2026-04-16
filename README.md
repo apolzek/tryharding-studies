@@ -19,7 +19,7 @@
 <a href="content/005">005</a> Basic log segregation with OpenTelemetry using routing connector<br>
 <a href="content/004">004</a> PostgreSQL data replication<br>
 <a href="content/003">003</a> How to monitor PostgreSQL running in container<br>
-<a href="content/002">002</a> Hands-on observability: running Prometheus, Grafana, Tempo and OpenTelemetry locally with Docker Compose<br>
+<a href="content/002">002</a> Running Prometheus, Grafana, Tempo and OpenTelemetry locally with Docker Compose<br>
 <a href="content/001">001</a> Exploring alternatives for load balancing and reverse proxy
 
 <!-- find . -type f -size +10M | grep -v ".git" | sed 's|^\./||' >> .gitignore -->

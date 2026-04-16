@@ -1,8 +1,7 @@
 services:
 
   postgres:
-    image: postgres:latest
-    # build: ./postgresql
+    build: ./postgresql
     container_name: postgres_db
     environment:
       POSTGRES_USER: rinha

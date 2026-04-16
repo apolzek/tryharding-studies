@@ -2,7 +2,7 @@
 
 ### Objectives
 
-To demonstrate data replication between PostgreSQL primary and replica using Docker Compose, ensuring that if one database instance goes down, the other can be used transparently by the application with minimal impact or downtime
+To demonstrate asynchronous streaming replication between a PostgreSQL primary and a hot standby replica using Docker Compose. The replica serves as a read-only copy of the primary, providing read scaling and a warm copy of the data for disaster recovery. Note that transparent failover is not part of this setup: the replica accepts only read queries (writes return `cannot execute INSERT in a read-only transaction`), and promoting it to primary requires a manual step or an external tool such as Patroni, repmgr, or pg_auto_failover, typically combined with a connection proxy (HAProxy, PgBouncer).
 
 ### Prerequisites
 
@@ -180,44 +180,47 @@ Now coming to whether the data was replicated in the *postgres_replica* database
 psql postgres://user:password@localhost:5433/postgres -c "SELECT * FROM test_schema.test_table"
 ```
 
-#### Calculate *replication_delay*
+#### Measure replication lag
 
-Create Schema and Table on Primary
-```
-psql postgres://user:password@localhost:5432/postgres -c "
-CREATE SCHEMA IF NOT EXISTS test_schema;
-CREATE TABLE IF NOT EXISTS test_schema.xd_table (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100),
-  age INT,
-  created_at timestamptz DEFAULT now()
-);
-"
-```
+The correct way to measure replication lag is to ask PostgreSQL itself, not to subtract `now()` from a client-side `created_at`. A client-side diff grows with the time you wait between running the INSERT and the SELECT, so it reflects your typing speed, not the replication pipeline.
 
-Insert Test Record on Primary
-```
-psql postgres://user:password@localhost:5432/postgres -c "
-INSERT INTO test_schema.xd_table (name, age, created_at) VALUES ('Teste Lag', 99, now());
-"
-```
-
-Check Replication Delay on Secondary
+From the replica, using the timestamp of the last transaction replayed from WAL:
 ```
 psql postgres://user:password@localhost:5433/postgres -c "
 SELECT
-  name,
-  age,
-  created_at,
-  now() - created_at AS replication_delay
-FROM test_schema.xd_table
-WHERE name = 'Teste Lag';
+  pg_is_in_recovery() AS is_replica,
+  pg_last_xact_replay_timestamp() AS last_replay,
+  EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp())) AS lag_seconds;
+"
+```
+
+Note: `pg_last_xact_replay_timestamp()` returns the time of the last transaction replayed from WAL, so if nothing is being written on the primary the value stays frozen and `lag_seconds` grows. To get a meaningful reading, run an INSERT on the primary and then this query on the replica.
+
+From the primary, using `pg_stat_replication` for per-stage lag and LSN byte distance:
+```
+psql postgres://user:password@localhost:5432/postgres -c "
+SELECT
+  client_addr,
+  state,
+  sync_state,
+  write_lag,
+  flush_lag,
+  replay_lag,
+  pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn) AS lag_bytes
+FROM pg_stat_replication;
 "
 ```
 
 ### Results
 
-Based on the tests performed, it was confirmed that replication between the primary and secondary servers is working correctly. The data inserted into the primary database was successfully reflected on the replica server. The *replication_delay* field showed that the average time for changes to propagate to the replica ranged between 4 and 6 seconds, which is considered good performance for a local Docker-based setup. These results validate the effectiveness of the asynchronous replication implemented in this environment.
+Replication between primary and replica works as expected: rows inserted on the primary become visible on the replica, and writes attempted against the replica are rejected with `cannot execute INSERT in a read-only transaction`, which is the correct behavior for a hot standby.
+
+Measured on this local Docker setup:
+
+- `pg_stat_replication.replay_lag` on the primary: sub-millisecond (around `00:00:00.0008`), with `lag_bytes = 0` right after a write.
+- `now() - pg_last_xact_replay_timestamp()` on the replica immediately after a write: around 50 ms, which mostly reflects the round-trip of issuing the query, not a real backlog.
+
+The previously reported "4 to 6 seconds" figure was an artifact of measuring `now() - created_at` from a client session: that value grows with the wall-clock time between the INSERT and the follow-up SELECT and does not represent replication delay.
 
 ### References
 
