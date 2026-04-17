@@ -13,16 +13,19 @@ Build a Discord bot that watches a specific text channel, transcribes voice mess
 
 ### Architecture
 
-```
-Discord
-  │
-  ▼
-discord-bot          ──►  whisper-api (faster-whisper + CUDA)
-  │ receives audio/ogg       transcribes with large-v3
-  │ replies in channel   ◄── returns text
-  │
-  ├── messages.log          (text + transcriptions)
-  └── recordings/           (voice channel audio .pcm)
+```mermaid
+flowchart TD
+    DISCORD[Discord]
+    BOT["discord-bot<br/>receives audio/ogg<br/>replies in channel"]
+    WHISPER["whisper-api<br/>(faster-whisper + CUDA)<br/>transcribes with large-v3"]
+    LOG["messages.log<br/>(text + transcriptions)"]
+    REC["recordings/<br/>(voice channel audio .pcm)"]
+
+    DISCORD --> BOT
+    BOT -->|audio/ogg| WHISPER
+    WHISPER -->|returns text| BOT
+    BOT --> LOG
+    BOT --> REC
 ```
 
 ### Reproducing

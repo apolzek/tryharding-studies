@@ -17,19 +17,13 @@ same values files can be reused against real clusters via `helm upgrade
 
 ### Architecture
 
-```
-           ┌──────────────────────────── mesh1 ───────────────────────────┐
-           │                                                               │
-  ┌────────┴────────┐                                        ┌────────────┴────────┐
-  │ cluster: east   │                                        │  cluster: west      │
-  │ network-east    │  <-- east-west gateway (mTLS) -->      │  network-west       │
-  │ k8s 1.34        │    172.19.255.100  <->  172.19.255.150 │  k8s 1.34           │
-  │ istiod          │                                        │  istiod             │
-  │ helloworld v1   │                                        │  helloworld v2      │
-  │ sleep (client)  │                                        │  sleep (client)     │
-  │ kube-prometheus │                                        │                     │
-  │   + Grafana     │                                        │                     │
-  └─────────────────┘                                        └─────────────────────┘
+```mermaid
+flowchart LR
+    subgraph MESH["mesh1"]
+        EAST["cluster: east<br/>network-east<br/>k8s 1.34<br/>istiod<br/>helloworld v1<br/>sleep (client)<br/>kube-prometheus + Grafana"]
+        WEST["cluster: west<br/>network-west<br/>k8s 1.34<br/>istiod<br/>helloworld v2<br/>sleep (client)"]
+    end
+    EAST <-->|"east-west gateway (mTLS)<br/>172.19.255.100 ↔ 172.19.255.150"| WEST
 ```
 
 Key design choices:

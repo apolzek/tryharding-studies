@@ -12,28 +12,35 @@ Exercise cross-language trace context propagation in a single request by chainin
 
 ### Architecture
 
-```
-        ┌──────────┐   HTTP   ┌────────────┐   HTTP   ┌────────────────┐   HTTP   ┌────────────┐
-client ─▶ go-fiber ├─────────▶│ java-spring├─────────▶│ python-fastapi ├─────────▶│ rust-axum  │
-        │  :8080   │          │   :8081    │          │     :8082      │          │   :8083    │
-        └────┬─────┘          └─────┬──────┘          └───────┬────────┘          └─────┬──────┘
-             │ OTLP gRPC            │ OTLP gRPC               │ OTLP HTTP/proto         │ OTLP gRPC
-             ▼                      ▼                          ▼                         ▼
-                       ┌────────────────────────────────────────────┐
-                       │         otel-collector (contrib)           │
-                       │  receivers: otlp (grpc 4317, http 4318)    │
-                       │  exporters: otlphttp→jaeger, prometheus    │
-                       └───────────────┬───────────────┬────────────┘
-                                       ▼               ▼
-                                 ┌──────────┐   ┌───────────────┐
-                                 │  Jaeger  │   │  Prometheus   │
-                                 │  :16686  │   │     :9090     │
-                                 └──────────┘   └───────────────┘
+```mermaid
+flowchart LR
+    CLIENT[client]
+    GO["go-fiber<br/>:8080"]
+    JAVA["java-spring<br/>:8081"]
+    PY["python-fastapi<br/>:8082"]
+    RUST["rust-axum<br/>:8083"]
+    OTEL["otel-collector (contrib)<br/>receivers: otlp (grpc 4317, http 4318)<br/>exporters: otlphttp→jaeger, prometheus"]
+    JAEGER["Jaeger<br/>:16686"]
+    PROM["Prometheus<br/>:9090"]
+    PG["PostgreSQL :5432<br/>customers, loan_applications<br/>(shared by all services)"]
 
-             ┌────────────────────────────────────────────────────┐
-             │  PostgreSQL :5432 — customers, loan_applications   │
-             └────────────────────────────────────────────────────┘
-                              ▲ shared by all services
+    CLIENT -->|HTTP| GO
+    GO -->|HTTP| JAVA
+    JAVA -->|HTTP| PY
+    PY -->|HTTP| RUST
+
+    GO -->|OTLP gRPC| OTEL
+    JAVA -->|OTLP gRPC| OTEL
+    PY -->|OTLP HTTP/proto| OTEL
+    RUST -->|OTLP gRPC| OTEL
+
+    OTEL --> JAEGER
+    OTEL --> PROM
+
+    GO -.-> PG
+    JAVA -.-> PG
+    PY -.-> PG
+    RUST -.-> PG
 ```
 
 ### Reproducing
