@@ -1,0 +1,93 @@
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --panel-2: #1c232c;
+  --border: #2a313c;
+  --fg: #e6edf3;
+  --muted: #8b949e;
+  --accent: #4ea1ff;
+  --good: #3fb950;
+  --warn: #d29922;
+  --bad: #f85149;
+  --active: #3fb950;
+  --light: #58a6ff;
+  --network: #d29922;
+  --idle: #484f58;
+  --nodata: #21262d;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 14px; line-height: 1.4; }
+
+.topbar { display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  background: var(--panel); position: sticky; top: 0; z-index: 10; }
+.brand strong { font-size: 16px; letter-spacing: 0.5px; }
+.brand .tag { margin-left: 10px; color: var(--muted); font-size: 12px; }
+.controls { display: flex; gap: 12px; align-items: center; }
+.controls label { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; }
+.controls select, .controls button { background: var(--panel-2); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+.controls button { cursor: pointer; }
+.controls button:hover { border-color: var(--accent); }
+.auto { color: var(--muted); font-size: 12px; }
+
+main { padding: 20px; max-width: 1400px; margin: 0 auto; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px; margin-bottom: 20px; }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; }
+.card .label { color: var(--muted); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.6px; margin-bottom: 6px; }
+.card .value { font-size: 28px; font-weight: 600; }
+.card .value small { font-size: 14px; color: var(--muted); margin-left: 3px; font-weight: 400; }
+.card .sub { color: var(--muted); font-size: 11px; margin-top: 6px; }
+.card.score .value { color: var(--accent); }
+.mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 6px; }
+.mini div { display: flex; flex-direction: column; }
+.mini .k { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.mini span:last-child { font-size: 15px; font-weight: 600; }
+
+.progress { background: var(--panel-2); border-radius: 4px; height: 6px;
+  margin-top: 8px; overflow: hidden; }
+.progress .bar { height: 100%; background: var(--accent); width: 0%;
+  transition: width 0.3s ease; }
+
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; margin-bottom: 20px; }
+.panel h2 { margin: 0 0 12px 0; font-size: 15px; font-weight: 600; }
+.panel h2 small { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 8px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+/* The chart-box wrapper gives Chart.js a deterministic parent height so
+ * `maintainAspectRatio: false` doesn't fall into the classic infinite-resize
+ * loop where the canvas grows the page, which triggers another resize, etc. */
+.chart-box { position: relative; height: 280px; width: 100%; }
+.chart-box.timeline { height: 110px; }
+.chart-box canvas { position: absolute; inset: 0; width: 100% !important;
+  height: 100% !important; display: block; }
+
+.timeline-legend { display: flex; gap: 16px; margin-bottom: 8px; color: var(--muted); font-size: 12px; }
+.timeline-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+  margin-right: 5px; vertical-align: middle; }
+.sw.active { background: var(--active); }
+.sw.light { background: var(--light); }
+.sw.network { background: var(--network); }
+.sw.idle { background: var(--idle); }
+.sw.nodata { background: var(--nodata); border: 1px solid var(--border); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table th, table td { text-align: left; padding: 8px 10px;
+  border-bottom: 1px solid var(--border); }
+table th { color: var(--muted); font-weight: 500; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.5px; }
+table tbody tr:hover { background: var(--panel-2); }
+.badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+.badge.live { background: rgba(63, 185, 80, 0.15); color: var(--good); }
+.badge.closed { background: rgba(139, 148, 158, 0.15); color: var(--muted); }
+
+footer { text-align: center; padding: 20px; color: var(--muted); }

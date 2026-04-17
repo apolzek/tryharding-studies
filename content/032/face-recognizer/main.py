@@ -159,6 +159,10 @@ def main():
     p_snap.add_argument("--device", default="/dev/video0")
     p_live = sub.add_parser("live")
     p_live.add_argument("--device", default="/dev/video0")
+    p_web = sub.add_parser("web")
+    p_web.add_argument("--device", default="/dev/video0")
+    p_web.add_argument("--host", default="0.0.0.0")
+    p_web.add_argument("--port", type=int, default=8000)
     args = parser.parse_args()
 
     app = build_app()
@@ -168,6 +172,9 @@ def main():
         snapshot(app, args.device)
     elif args.cmd == "live":
         live(app, args.device)
+    elif args.cmd == "web":
+        import server
+        server.start(app, args.device, args.host, args.port)
 
 
 if __name__ == "__main__":

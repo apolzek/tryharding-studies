@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MCP playground — content/033</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #0b0e14; color: #d1d5db;
+    display: grid; grid-template-columns: 300px 320px 1fr; height: 100vh;
+  }
+  aside, main { padding: 16px; overflow: auto; }
+  aside { border-right: 1px solid #1f2937; }
+  h1 { font-size: 14px; margin: 0 0 12px; letter-spacing: 0.05em; }
+  h2 { font-size: 11px; margin: 16px 0 8px; text-transform: uppercase;
+       letter-spacing: 0.1em; color: #6b7280; }
+  h2:first-child { margin-top: 0; }
+  select, button, input, textarea {
+    background: #1f2937; color: #e5e7eb; border: 1px solid #374151;
+    border-radius: 4px; padding: 6px 8px; font-size: 13px; font-family: inherit;
+  }
+  button { cursor: pointer; }
+  button:hover:not(:disabled) { background: #374151; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.primary { background: #2563eb; border-color: #2563eb; color: white; }
+  button.primary:hover:not(:disabled) { background: #1d4ed8; }
+  .server-row { display: flex; gap: 8px; align-items: center; }
+  .server-row select { flex: 1; }
+  .tool {
+    padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    border: 1px solid transparent;
+  }
+  .tool:hover { background: #1f2937; }
+  .tool.selected { background: #2563eb; color: white; }
+  .field { margin-bottom: 10px; }
+  .field label {
+    display: block; font-size: 12px; color: #9ca3af; margin-bottom: 3px;
+    font-family: ui-monospace, monospace;
+  }
+  .field .required { color: #ef4444; }
+  .field input, .field textarea {
+    width: 100%; font-family: ui-monospace, monospace; font-size: 12px;
+  }
+  .field textarea { resize: vertical; min-height: 60px; }
+  .field .desc { font-size: 11px; color: #6b7280; margin-top: 3px; }
+  pre {
+    background: #0f1419; padding: 12px; border-radius: 4px; overflow: auto;
+    font-size: 12px; line-height: 1.45; margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .badge { display: inline-block; background: #374151; padding: 1px 6px;
+           border-radius: 10px; font-size: 11px; margin-left: 4px;
+           vertical-align: middle; color: #d1d5db; }
+  .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .preset-grid button { font-size: 11px; padding: 5px 6px; }
+  .status-ok { color: #10b981; }
+  .status-err { color: #ef4444; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 12px;
+             align-items: center; flex-wrap: wrap; }
+  .toolbar h1 { margin: 0; font-size: 14px; }
+  .toolbar .tool-name {
+    font-family: ui-monospace, monospace; color: #f59e0b; font-size: 14px;
+  }
+  .spinner {
+    display: inline-block; border: 2px solid #374151; border-top-color: #2563eb;
+    border-radius: 50%; width: 12px; height: 12px;
+    animation: spin 0.7s linear infinite; vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  small { color: #6b7280; }
+  a { color: #60a5fa; }
+  .hint {
+    background: #1f2937; border-left: 3px solid #2563eb; padding: 8px 10px;
+    font-size: 12px; margin-top: 12px; border-radius: 3px; color: #9ca3af;
+  }
+</style>
+</head>
+<body>
+
+<aside>
+  <h1>MCP Playground</h1>
+  <h2>Server</h2>
+  <div class="server-row">
+    <select id="server"></select>
+  </div>
+  <div style="margin-top:8px; display:flex; gap:6px; align-items:center">
+    <button onclick="loadTools()" class="primary">Connect &amp; list tools</button>
+    <span id="toolStatus"></span>
+  </div>
+
+  <h2>RED presets</h2>
+  <small>Pick any server then click a preset — it auto-selects the right tool
+  and fills <code>query</code>/<code>expr</code>.</small>
+  <div class="preset-grid" id="presets"></div>
+
+  <h2>Handy queries</h2>
+  <div class="preset-grid" id="handy"></div>
+
+  <div class="hint">
+    Targets assume the <b>otel-red</b> stack is up. Switch the network/target
+    by setting <code>MCP_NET</code>, <code>MCP_PROM</code>,
+    <code>MCP_VM</code>, <code>MCP_GF</code> env vars before launching
+    <code>server.py</code>.
+  </div>
+</aside>
+
+<aside>
+  <h2>Tools <span id="toolCount" class="badge"></span></h2>
+  <div id="tools"></div>
+</aside>
+
+<main>
+  <div class="toolbar">
+    <h1>Call</h1>
+    <span class="tool-name" id="toolName">—</span>
+    <button id="callBtn" class="primary" onclick="runCall()" disabled>Run</button>
+    <span id="callStatus"></span>
+  </div>
+  <div id="toolDesc" style="font-size:12px;color:#9ca3af;margin-bottom:10px"></div>
+  <div id="form"></div>
+
+  <h2>Response</h2>
+  <pre id="out">—</pre>
+</main>
+
+<script>
+let tools = [];
+let current = null;
+
+const RED = (expr) => ({ execute_query: expr, query: expr, query_prometheus: expr });
+const RED_Q_RATE    = 'sum by (span_name) (rate(traces_spanmetrics_calls_total{service_name="demo-app"}[1m]))';
+const RED_Q_ERR     = 'sum(rate(traces_spanmetrics_calls_total{service_name="demo-app",status_code="STATUS_CODE_ERROR"}[1m])) / sum(rate(traces_spanmetrics_calls_total{service_name="demo-app"}[1m]))';
+const RED_Q_P95     = 'histogram_quantile(0.95, sum by (le, span_name) (rate(traces_spanmetrics_duration_milliseconds_bucket{service_name="demo-app"}[1m])))';
+const RED_Q_SLOWEST = 'topk(1, histogram_quantile(0.95, sum by (le, span_name) (rate(traces_spanmetrics_duration_milliseconds_bucket{service_name="demo-app"}[1m]))))';
+
+const PRESETS = [
+  { label: "Rate per endpoint",  kind: "query", byTool: RED(RED_Q_RATE) },
+  { label: "Error rate",         kind: "query", byTool: RED(RED_Q_ERR) },
+  { label: "p95 per endpoint",   kind: "query", byTool: RED(RED_Q_P95) },
+  { label: "Slowest endpoint",   kind: "query", byTool: RED(RED_Q_SLOWEST) },
+  { label: "Active alerts",      kind: "plain", byTool: { get_alerts: {}, list_alerts: {}, alerts: {} } },
+  { label: "List rules",         kind: "plain", byTool: { get_rules: {}, list_rules: {}, rules: {} } },
+  { label: "Targets",            kind: "plain", byTool: { get_targets: {}, list_targets: {}, targets: {} } },
+  { label: "Label names",        kind: "plain", byTool: { list_label_names: {}, label_names: {}, labels: {} } },
+];
+
+const HANDY = [
+  { label: "Grafana: datasources", tool: "list_datasources", args: {} },
+  { label: "Grafana: metrics",     tool: "list_prometheus_metric_names",
+    args: { datasourceUid: "prometheus", limit: 20 } },
+  { label: "Grafana: dashboards",  tool: "search_dashboards", args: { query: "" } },
+  { label: "tjhop: docs_list",     tool: "docs_list", args: {} },
+  { label: "VM: tsdb_status",      tool: "tsdb_status", args: {} },
+  { label: "VM: top_queries",      tool: "top_queries", args: {} },
+];
+
+async function init() {
+  const r = await fetch("/api/servers");
+  const servers = await r.json();
+  const sel = document.getElementById("server");
+  for (const s of servers) {
+    const o = document.createElement("option");
+    o.value = s.id; o.textContent = s.label;
+    sel.appendChild(o);
+  }
+  sel.onchange = () => { tools = []; current = null; render(); };
+  renderPresets();
+  renderHandy();
+}
+init();
+
+function renderPresets() {
+  const div = document.getElementById("presets");
+  div.innerHTML = "";
+  for (const p of PRESETS) {
+    const b = document.createElement("button");
+    b.textContent = p.label;
+    b.onclick = () => applyPreset(p);
+    div.appendChild(b);
+  }
+}
+
+function renderHandy() {
+  const div = document.getElementById("handy");
+  div.innerHTML = "";
+  for (const h of HANDY) {
+    const b = document.createElement("button");
+    b.textContent = h.label;
+    b.onclick = () => {
+      const t = tools.find(x => x.name === h.tool);
+      if (!t) { alert("Tool '" + h.tool + "' not found on this server. Load tools first."); return; }
+      selectTool(t);
+      for (const [k, v] of Object.entries(h.args)) {
+        const el = document.querySelector(`[data-arg="${CSS.escape(k)}"]`);
+        if (el) el.value = v;
+      }
+    };
+    div.appendChild(b);
+  }
+}
+
+function applyPreset(p) {
+  if (!tools.length) { alert("Load tools first (Connect button)."); return; }
+  for (const t of tools) {
+    if (t.name in p.byTool) {
+      selectTool(t);
+      if (p.kind === "query") {
+        const value = p.byTool[t.name];
+        const paramName =
+          (t.inputSchema?.properties?.query && "query") ||
+          (t.inputSchema?.properties?.expr && "expr") || null;
+        if (paramName) {
+          const el = document.querySelector(`[data-arg="${CSS.escape(paramName)}"]`);
+          if (el) el.value = value;
+        }
+        // grafana query_prometheus needs extra args
+        if (t.name === "query_prometheus") {
+          const uid = document.querySelector(`[data-arg="datasourceUid"]`); if (uid) uid.value = "prometheus";
+          const qt  = document.querySelector(`[data-arg="queryType"]`);     if (qt)  qt.value  = "instant";
+          const end = document.querySelector(`[data-arg="endTime"]`);       if (end) end.value = "now";
+        }
+      }
+      return;
+    }
+  }
+  alert("None of the expected tools (" + Object.keys(p.byTool).join(", ") +
+        ") exist on this server.");
+}
+
+async function loadTools() {
+  const sid = document.getElementById("server").value;
+  const s = document.getElementById("toolStatus");
+  s.innerHTML = '<span class="spinner"></span>';
+  current = null;
+  try {
+    const r = await fetch("/api/tools", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({server: sid}),
+    });
+    const j = await r.json();
+    if (j.error) { throw new Error(JSON.stringify(j.error)); }
+    tools = j.tools || [];
+    s.innerHTML = '<span class="status-ok">✓ ' + tools.length + " tools loaded</span>";
+    render();
+  } catch (e) {
+    tools = [];
+    s.innerHTML = '<span class="status-err">✗ ' + e.message + "</span>";
+    render();
+  }
+}
+
+function render() {
+  document.getElementById("toolCount").textContent = tools.length || "";
+  const div = document.getElementById("tools");
+  div.innerHTML = "";
+  for (const t of tools) {
+    const d = document.createElement("div");
+    d.className = "tool";
+    d.textContent = t.name;
+    d.title = t.description || "";
+    if (current && current.name === t.name) d.classList.add("selected");
+    d.onclick = () => selectTool(t);
+    div.appendChild(d);
+  }
+  if (!current) {
+    document.getElementById("toolName").textContent = "—";
+    document.getElementById("toolDesc").textContent = "";
+    document.getElementById("form").innerHTML = "";
+    document.getElementById("callBtn").disabled = true;
+  }
+}
+
+function selectTool(t) {
+  current = t;
+  document.getElementById("toolName").textContent = t.name;
+  document.getElementById("toolDesc").textContent = t.description || "";
+  document.getElementById("callBtn").disabled = false;
+  render();
+  const form = document.getElementById("form");
+  form.innerHTML = "";
+  const props = (t.inputSchema && t.inputSchema.properties) || {};
+  const req = new Set((t.inputSchema && t.inputSchema.required) || []);
+  if (!Object.keys(props).length) {
+    form.innerHTML = '<em style="color:#6b7280">no arguments</em>';
+    return;
+  }
+  for (const [name, spec] of Object.entries(props)) {
+    const f = document.createElement("div");
+    f.className = "field";
+    const label = document.createElement("label");
+    label.innerHTML = name +
+      (req.has(name) ? ' <span class="required">*</span>' : '') +
+      ' <small>:' + (spec.type || "any") + '</small>';
+    f.appendChild(label);
+    const long = spec.type === "string" &&
+      (name === "query" || name === "expr" || name === "promql" ||
+       (spec.description || "").length > 80);
+    const el = long ? document.createElement("textarea") : document.createElement("input");
+    if (long) el.rows = 3;
+    el.setAttribute("data-arg", name);
+    if (spec.type === "integer" || spec.type === "number") el.type = "number";
+    if (spec.default !== undefined) el.value = spec.default;
+    f.appendChild(el);
+    if (spec.description) {
+      const d = document.createElement("div");
+      d.className = "desc"; d.textContent = spec.description;
+      f.appendChild(d);
+    }
+    form.appendChild(f);
+  }
+}
+
+async function runCall() {
+  if (!current) return;
+  const sid = document.getElementById("server").value;
+  const args = {};
+  const props = (current.inputSchema && current.inputSchema.properties) || {};
+  for (const [name, spec] of Object.entries(props)) {
+    const el = document.querySelector(`[data-arg="${CSS.escape(name)}"]`);
+    if (!el) continue;
+    let v = el.value;
+    if (v === "") continue;
+    if (spec.type === "integer") v = parseInt(v, 10);
+    else if (spec.type === "number") v = parseFloat(v);
+    else if (spec.type === "boolean") v = (v === "true" || v === true);
+    args[name] = v;
+  }
+  const out = document.getElementById("out");
+  const status = document.getElementById("callStatus");
+  out.textContent = "…";
+  status.innerHTML = '<span class="spinner"></span>';
+  try {
+    const r = await fetch("/api/call", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({server: sid, tool: current.name, arguments: args}),
+    });
+    const j = await r.json();
+    const resp = j.response || {};
+    if (resp.error) {
+      status.innerHTML = '<span class="status-err">✗ error</span>';
+      out.textContent = JSON.stringify(resp.error, null, 2);
+      return;
+    }
+    const content = resp.result && resp.result.content;
+    if (Array.isArray(content) && content.length && content[0].text !== undefined) {
+      let t = content[0].text;
+      try { t = JSON.stringify(JSON.parse(t), null, 2); } catch {}
+      out.textContent = t;
+    } else {
+      out.textContent = JSON.stringify(resp.result, null, 2);
+    }
+    status.innerHTML = '<span class="status-ok">✓ ok</span>';
+  } catch (e) {
+    status.innerHTML = '<span class="status-err">✗ ' + e.message + "</span>";
+    out.textContent = String(e);
+  }
+}
+</script>
+</body>
+</html>

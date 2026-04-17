@@ -2,7 +2,7 @@
 
 COMPOSE = docker compose
 
-.PHONY: build enroll snapshot live shell down clean xhost
+.PHONY: build enroll snapshot live web shell down clean xhost
 
 build:
 	$(COMPOSE) build
@@ -18,6 +18,9 @@ xhost:
 
 live: xhost
 	$(COMPOSE) run --rm face-recognizer live
+
+web:
+	$(COMPOSE) run --rm --service-ports face-recognizer web
 
 shell:
 	$(COMPOSE) run --rm --entrypoint bash face-recognizer

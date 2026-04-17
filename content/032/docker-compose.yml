@@ -12,6 +12,9 @@ services:
       KNOWN_DIR: /data/known_faces
       OUTPUT_DIR: /data/output
       MATCH_THRESHOLD: "0.45"
+      YOLO_MODEL: "${YOLO_MODEL:-yolov8s-worldv2.pt}"
+      YOLO_CONF: "${YOLO_CONF:-0.10}"
+      OBJECT_CLASSES: "${OBJECT_CLASSES:-}"
     devices:
       - /dev/video0:/dev/video0
     volumes:

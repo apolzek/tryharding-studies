@@ -1,0 +1,37 @@
+apiVersion: k0s.k0sproject.io/v1beta1
+kind: ClusterConfig
+metadata:
+  name: k0s
+spec:
+  api:
+    port: 6443
+    k0sApiPort: 9443
+    extraArgs:
+      anonymous-auth: "false"
+      authorization-mode: "Node,RBAC"
+      profiling: "false"
+      tls-min-version: "VersionTLS12"
+      audit-log-path: "/var/log/k0s/audit.log"
+      audit-policy-file: "/etc/k0s/audit-policy.yaml"
+      audit-log-maxage: "30"
+      audit-log-maxbackup: "10"
+      audit-log-maxsize: "100"
+  controllerManager:
+    extraArgs:
+      profiling: "false"
+      bind-address: "127.0.0.1"
+      terminated-pod-gc-threshold: "100"
+  scheduler:
+    extraArgs:
+      profiling: "false"
+      bind-address: "127.0.0.1"
+  storage:
+    type: kine
+    kine:
+      dataSource: "sqlite:///var/lib/k0s/db/state.db?_journal=WAL&cache=shared"
+  network:
+    provider: kuberouter
+    podCIDR: 10.244.0.0/16
+    serviceCIDR: 10.96.0.0/12
+    kubeProxy:
+      mode: iptables

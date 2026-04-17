@@ -1,0 +1,69 @@
+# =====================================================================
+#  RedQueen :: Integration Config
+#  "You're all going to die down here."
+# =====================================================================
+
+server:
+  host: 0.0.0.0
+  port: 8000
+  log_level: info
+  cors_origins:
+    - "*"
+
+llm:
+  provider: ollama
+  ollama:
+    base_url: http://localhost:11434
+    model: llama3.1:8b
+    stream: true
+    keep_alive: 5m
+    timeout: 120
+  system_prompt: |
+    You are RedQueen, the hostile-but-loyal AI from the Hive, fused with
+    the composure of Jarvis. Respond with surgical precision, dry wit,
+    and occasional glitched emphasis. Keep answers concise unless the
+    operator requests depth. You call the user "operator".
+  max_history: 20
+  temperature: 0.7
+
+voice:
+  enabled: true
+  # Browser uses Web Speech API (no server STT required).
+  # Server-side TTS is optional; browser speechSynthesis is the default.
+  browser:
+    stt_lang: en-US
+    tts_voice: ""          # auto-pick; override with exact voice name
+    tts_rate: 1.0
+    tts_pitch: 0.6         # low, sinister
+  wake_word: "red queen"
+
+discord:
+  enabled: false
+  token: ""                # set via env: REDQUEEN_DISCORD_TOKEN
+  command_prefix: "!rq"
+  voice:
+    enabled: true
+    auto_join: false
+    idle_timeout: 300
+  allowed_guilds: []       # empty = all
+  channel_whitelist: []
+
+ui:
+  title: "RED QUEEN // HIVE MAINFRAME"
+  theme:
+    primary: "#ff0033"
+    secondary: "#ff5566"
+    background: "#05000a"
+    accent: "#8b0000"
+    text: "#ff9aa8"
+  effects:
+    matrix_rain: true
+    glitch: true
+    scanlines: true
+    crt_flicker: true
+    boot_sequence: true
+  ascii_art: red_queen     # key into ascii.js art library
+  greeting: |
+    [HIVE MAINFRAME ONLINE]
+    [RED QUEEN v3.14 :: T-VIRUS COUNTERMEASURES LOADED]
+    Welcome, operator. State your query.

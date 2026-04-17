@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>RED QUEEN // HIVE MAINFRAME</title>
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+  <div id="scanlines" class="overlay"></div>
+  <div id="crt" class="overlay"></div>
+  <div id="vignette" class="overlay"></div>
+
+  <main id="app" aria-live="polite">
+    <header id="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <span class="glitch" data-text="RED QUEEN">RED QUEEN</span>
+        <span class="sub">// HIVE MAINFRAME</span>
+      </div>
+      <div class="stats">
+        <span id="stat-status">STATUS: <b>BOOTING</b></span>
+        <span id="stat-model">MODEL: <b>--</b></span>
+        <span id="stat-latency">LAT: <b>-- ms</b></span>
+        <span id="stat-time">--:--:--</span>
+      </div>
+    </header>
+
+    <section id="stage">
+      <aside id="panel-left">
+        <pre id="ascii-art" class="pulse"></pre>
+        <div id="hud">
+          <div class="bar"><label>CPU</label><div class="track"><div id="bar-cpu"></div></div></div>
+          <div class="bar"><label>MEM</label><div class="track"><div id="bar-mem"></div></div></div>
+          <div class="bar"><label>NET</label><div class="track"><div id="bar-net"></div></div></div>
+          <div class="bar"><label>HIVE</label><div class="track"><div id="bar-hive"></div></div></div>
+        </div>
+        <div id="legend">
+          <div><kbd>Space</kbd> voice</div>
+          <div><kbd>/reset</kbd> purge</div>
+          <div><kbd>/stop</kbd> halt speech</div>
+        </div>
+      </aside>
+
+      <section id="panel-main">
+        <div id="console" role="log"></div>
+        <form id="prompt-form" autocomplete="off">
+          <span class="chev">&gt;</span>
+          <input id="prompt" type="text" placeholder="state your query, operator..." autofocus />
+          <button type="button" id="mic" title="Voice (Space)" aria-label="Voice">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <path d="M12 19v3"/>
+            </svg>
+          </button>
+          <button type="submit" id="send">TRANSMIT</button>
+        </form>
+      </section>
+    </section>
+
+    <footer id="botbar">
+      <span id="ws-state">WS: <b>offline</b></span>
+      <span id="mic-state">MIC: <b>idle</b></span>
+      <span id="tts-state">TTS: <b>ready</b></span>
+      <span class="spacer"></span>
+      <span>v3.14 // T-VIRUS COUNTERMEASURES LOADED</span>
+    </footer>
+  </main>
+
+  <div id="boot">
+    <pre id="boot-log"></pre>
+  </div>
+
+  <script src="/static/ascii.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

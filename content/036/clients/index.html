@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>WS PoC</title>
+  <style>
+    body { font-family: monospace; margin: 2rem; max-width: 960px; }
+    #log { background: #111; color: #0f0; padding: 1rem; height: 400px; overflow-y: auto; white-space: pre-wrap; }
+    input, select, button { font: inherit; padding: .4rem; }
+    .row { margin: .5rem 0; display: flex; gap: .5rem; }
+  </style>
+</head>
+<body>
+  <h1>WebSocket PoC — browser client</h1>
+  <div class="row">
+    <select id="url">
+      <option value="ws://localhost:8001/ws">go (8001)</option>
+      <option value="ws://localhost:8002/ws">java (8002)</option>
+      <option value="ws://localhost:8003/ws">dotnet (8003)</option>
+      <option value="ws://localhost:8004/ws">javascript (8004)</option>
+      <option value="ws://localhost:8005">python (8005)</option>
+    </select>
+    <button id="connect">connect</button>
+    <button id="disconnect">disconnect</button>
+  </div>
+  <div class="row">
+    <input id="msg" placeholder="message" style="flex:1" />
+    <button id="send">send</button>
+  </div>
+  <div id="log"></div>
+
+  <script>
+    let ws = null;
+    const log = (s) => { const el = document.getElementById('log'); el.textContent += s + "\n"; el.scrollTop = el.scrollHeight; };
+
+    document.getElementById('connect').onclick = () => {
+      const url = document.getElementById('url').value;
+      ws = new WebSocket(url);
+      ws.onopen = () => log("[open] " + url);
+      ws.onmessage = (e) => log("< " + e.data);
+      ws.onclose = (e) => log("[close] code=" + e.code + " reason=" + e.reason);
+      ws.onerror = () => log("[error]");
+    };
+    document.getElementById('disconnect').onclick = () => ws && ws.close();
+    document.getElementById('send').onclick = () => {
+      const msg = document.getElementById('msg').value;
+      if (ws && ws.readyState === 1) { ws.send(msg); log("> " + msg); }
+    };
+  </script>
+</body>
+</html>

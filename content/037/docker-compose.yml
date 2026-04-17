@@ -1,0 +1,70 @@
+name: k0s-poc
+
+x-node: &node
+  image: k0s-ubuntu:local
+  build:
+    context: .
+  privileged: true
+  cgroup: host
+  restart: unless-stopped
+  tmpfs:
+    - /run
+    - /tmp
+  security_opt:
+    - seccomp=unconfined
+    - apparmor=unconfined
+  networks:
+    - k0snet
+
+services:
+  controller:
+    <<: *node
+    hostname: controller
+    container_name: k0s-controller
+    environment:
+      K0S_ROLE: controller
+    ports:
+      - "6443:6443"
+    volumes:
+      - shared:/shared
+      - controller-data:/var/lib/k0s
+      - controller-log:/var/log/k0s
+
+  worker-1:
+    <<: *node
+    hostname: worker-1
+    container_name: k0s-worker-1
+    environment:
+      K0S_ROLE: worker
+    depends_on:
+      - controller
+    volumes:
+      - shared:/shared:ro
+      - worker-1-data:/var/lib/k0s
+      - worker-1-disk:/mnt/data
+
+  worker-2:
+    <<: *node
+    hostname: worker-2
+    container_name: k0s-worker-2
+    environment:
+      K0S_ROLE: worker
+    depends_on:
+      - controller
+    volumes:
+      - shared:/shared:ro
+      - worker-2-data:/var/lib/k0s
+      - worker-2-disk:/mnt/data
+
+networks:
+  k0snet:
+    driver: bridge
+
+volumes:
+  shared:
+  controller-data:
+  controller-log:
+  worker-1-data:
+  worker-1-disk:
+  worker-2-data:
+  worker-2-disk:

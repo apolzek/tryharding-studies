@@ -15,8 +15,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir git+https://github.com/openai/CLIP.git && python -c "import clip; print('clip OK:', clip.__file__)"
+
+RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt'); YOLO('yolov8s-worldv2.pt')"
 
 COPY . .
 

@@ -1,0 +1,29 @@
+[Unit]
+Description=userwatch eBPF user-activity agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/userwatch/agent/agent.py
+Restart=on-failure
+RestartSec=5
+# BPF requires privileged capabilities; CAP_BPF + CAP_PERFMON are the modern set,
+# CAP_SYS_ADMIN is the safest fallback on older kernels/distros.
+AmbientCapabilities=CAP_BPF CAP_PERFMON CAP_SYS_ADMIN CAP_NET_ADMIN
+CapabilityBoundingSet=CAP_BPF CAP_PERFMON CAP_SYS_ADMIN CAP_NET_ADMIN
+# Run as root (BCC requires it to compile/load CO-RE programs).
+User=root
+Environment=UW_BACKEND=http://127.0.0.1:8080
+Environment=UW_TOKEN=dev-token
+Environment=UW_INTERVAL=10
+# Soft resource limits — the agent is tiny but protect the host anyway.
+MemoryMax=256M
+CPUQuota=20%
+ProtectSystem=strict
+ReadWritePaths=/sys/fs/bpf /tmp /var/log
+NoNewPrivileges=false
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

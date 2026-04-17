@@ -1,0 +1,95 @@
+services:
+  # -------- WebSocket servers --------
+  ws-go:
+    build: ./websocket/go
+    container_name: ws-go
+    ports: ["8001:8001"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  ws-java:
+    build: ./websocket/java
+    container_name: ws-java
+    ports: ["8002:8002"]
+
+  ws-dotnet:
+    build: ./websocket/dotnet
+    container_name: ws-dotnet
+    ports: ["8003:8003"]
+
+  ws-js:
+    build: ./websocket/javascript
+    container_name: ws-js
+    ports: ["8004:8004"]
+
+  ws-py:
+    build: ./websocket/python
+    container_name: ws-py
+    ports: ["8005:8005"]
+
+  # -------- Webhook receivers --------
+  wh-go:
+    build: ./webhook/go
+    container_name: wh-go
+    environment:
+      WEBHOOK_SECRET: s3cret
+    ports: ["9001:9001"]
+
+  wh-java:
+    build: ./webhook/java
+    container_name: wh-java
+    environment:
+      WEBHOOK_SECRET: s3cret
+    ports: ["9002:9002"]
+
+  wh-dotnet:
+    build: ./webhook/dotnet
+    container_name: wh-dotnet
+    environment:
+      WEBHOOK_SECRET: s3cret
+    ports: ["9003:9003"]
+
+  wh-js:
+    build: ./webhook/javascript
+    container_name: wh-js
+    environment:
+      WEBHOOK_SECRET: s3cret
+    ports: ["9004:9004"]
+
+  wh-py:
+    build: ./webhook/python
+    container_name: wh-py
+    environment:
+      WEBHOOK_SECRET: s3cret
+    ports: ["9005:9005"]
+
+  # -------- Producer / load generator --------
+  producer:
+    build: ./producer
+    container_name: producer
+    environment:
+      WEBHOOK_SECRET: s3cret
+      WH_GO:     http://wh-go:9001/webhook
+      WH_JAVA:   http://wh-java:9002/webhook
+      WH_DOTNET: http://wh-dotnet:9003/webhook
+      WH_JS:     http://wh-js:9004/webhook
+      WH_PY:     http://wh-py:9005/webhook
+      WS_GO:     ws://ws-go:8001/ws
+      WS_JAVA:   ws://ws-java:8002/ws
+      WS_DOTNET: ws://ws-dotnet:8003/ws
+      WS_JS:     ws://ws-js:8004/ws
+      WS_PY:     ws://ws-py:8005
+    profiles: ["tools"]  # only starts when requested (see Makefile)
+    depends_on:
+      - wh-go
+      - wh-java
+      - wh-dotnet
+      - wh-js
+      - wh-py
+
+networks:
+  default:
+    name: poc036
