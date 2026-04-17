@@ -81,6 +81,8 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
       - ./datasource.yml:/etc/grafana/provisioning/datasources/ds.yml:ro
+      - ./grafana/dashboards-provider.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports: ["19098:3000"]
     networks: [obs]
 
