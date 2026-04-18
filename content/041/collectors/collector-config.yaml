@@ -1,7 +1,26 @@
-# Configuração compartilhada pelos 5 collectors (v0.150.0 contrib).
-# Cada collector herda o mesmo arquivo; o rótulo `instance` é atribuído
-# pelo Prometheus ao fazer scrape em `otel-collector-N:8889/metrics` e
-# `otel-collector-N:8888/metrics` (telemetria interna).
+# Configuração compartilhada pelos 5 collectors (contrib v0.150.1).
+# Contém extensões, processors e connectors que dão observabilidade
+# sobre o próprio collector: health_check, pprof, zpages, memory_limiter,
+# telemetria interna detalhada, spanmetrics, servicegraph, count.
+
+extensions:
+  # Endpoint HTTP de liveness/readiness. Prometheus pode usar para blackbox,
+  # mas aqui é útil para `docker compose healthcheck` e debug.
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+  # Profiles Go (heap, goroutine, cpu, mutex) — útil para diagnosticar
+  # regressões de CPU/memória no collector:  `go tool pprof http://host:1777/debug/pprof/...`
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+  # zPages — páginas embutidas de diagnóstico do collector:
+  #   http://host:55679/debug/tracez   spans ativos/erro/latency buckets
+  #   http://host:55679/debug/pipelinez  componentes por pipeline
+  #   http://host:55679/debug/extensionz extensões ativas
+  #   http://host:55679/debug/featurez   feature gates
+  zpages:
+    endpoint: 0.0.0.0:55679
 
 receivers:
   otlp:
@@ -11,7 +30,7 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
-  # Métricas do host (contrib) — CPU, memória, disco, rede, load, processos.
+  # Hostmetrics (contrib) — observabilidade do host do collector.
   hostmetrics:
     collection_interval: 15s
     scrapers:
@@ -29,7 +48,7 @@ receivers:
       network: {}
       processes: {}
 
-  # Synthetic monitoring via HTTP check (contrib). Útil para analytics de SLO.
+  # Synthetic monitoring.
   http_check:
     collection_interval: 30s
     targets:
@@ -39,17 +58,25 @@ receivers:
         method: GET
 
 processors:
+  # Memory limiter (sempre o PRIMEIRO no pipeline) — aciona backpressure
+  # quando ultrapassa 80% do limite; permite observar `otelcol_processor_refused_*`
+  # e também expõe `otelcol_process_runtime_*`.
+  memory_limiter:
+    check_interval: 2s
+    limit_percentage: 80
+    spike_limit_percentage: 25
+
   batch:
     send_batch_size: 1024
     timeout: 5s
 
-  # Detecta atributos do host automaticamente (contrib).
+  # Detecta atributos do host automaticamente.
   resourcedetection:
     detectors: [env, system]
     timeout: 5s
     override: false
 
-  # Enriquece recursos com o ID da instância do collector.
+  # Adiciona IDs de collector/instance nos recursos.
   resource:
     attributes:
       - key: collector.id
@@ -59,32 +86,28 @@ processors:
         value: ${env:HOSTNAME}
         action: upsert
 
-  # Transform (contrib) — classifica cada log em um bucket de severidade
-  # que vira dimensão do count connector (otelpoc.logs.by_severity).
+  # Classifica cada log em um bucket de severidade para o count connector.
   transform/enrich:
     log_statements:
       - context: log
         statements:
-          - set(attributes["severity_bucket"], "info") where severity_number <= 9
-          - set(attributes["severity_bucket"], "warn") where severity_number > 9 and severity_number <= 13
+          - set(attributes["severity_bucket"], "info")  where severity_number <= 9
+          - set(attributes["severity_bucket"], "warn")  where severity_number > 9 and severity_number <= 13
           - set(attributes["severity_bucket"], "error") where severity_number > 13
 
 connectors:
-  # Count connector (contrib) — contagens ricas de spans, span events, logs,
-  # métricas e datapoints, com cortes por atributo.
+  # Count connector — contagens custom de spans, logs e erros.
   count:
     spans:
-      # service_name já aparece como label via resource_to_telemetry_conversion,
-      # então sum(rate(otelpoc_spans_total)) by (service_name) já cobre o "by service".
       otelpoc.spans.total:
         description: Total de spans processados pelo collector.
       otelpoc.spans.errors:
-        description: Spans marcados como erro.
+        description: Spans com STATUS_CODE_ERROR.
         conditions:
           - status.code == 2
     spanevents:
       otelpoc.spanevents.total:
-        description: Total de span events observados.
+        description: Total de span events.
     logs:
       otelpoc.logs.total:
         description: Total de registros de log.
@@ -93,11 +116,8 @@ connectors:
         attributes:
           - key: severity_bucket
             default_value: unknown
-    datapoints:
-      otelpoc.datapoints.total:
-        description: Total de datapoints de métricas recebidos.
 
-  # Spanmetrics connector (contrib) — RED metrics a partir de spans.
+  # Spanmetrics connector — RED metrics.
   spanmetrics:
     histogram:
       unit: ms
@@ -111,7 +131,7 @@ connectors:
     metrics_flush_interval: 10s
     namespace: traces.spanmetrics
 
-  # Servicegraph connector (contrib) — métricas de topologia de serviços.
+  # Service graph connector — topologia de serviços.
   servicegraph:
     latency_histogram_buckets: [1ms, 5ms, 10ms, 50ms, 100ms, 500ms, 1s, 5s]
     dimensions: []
@@ -122,7 +142,6 @@ connectors:
     store_expiration_loop: 2s
 
 exporters:
-  # Exporter Prometheus (nativo) — expõe /metrics na 8889.
   prometheus:
     endpoint: 0.0.0.0:8889
     send_timestamps: false
@@ -133,12 +152,14 @@ exporters:
     verbosity: basic
 
 service:
+  extensions: [health_check, pprof, zpages]
   telemetry:
     logs:
       level: info
     metrics:
-      # A telemetria interna do collector (otelcol_*) é exposta na 8888 para
-      # o Prometheus coletar diretamente.
+      # `detailed` expõe métricas adicionais por pipeline, por receiver/exporter
+      # e por processor — dá granularidade maior no dashboard "internals".
+      level: detailed
       readers:
         - pull:
             exporter:
@@ -148,13 +169,13 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [resourcedetection, resource, batch]
+      processors: [memory_limiter, resourcedetection, resource, batch]
       exporters: [spanmetrics, servicegraph, count, debug]
     metrics:
       receivers: [otlp, hostmetrics, http_check, spanmetrics, servicegraph, count]
-      processors: [resourcedetection, resource, batch]
+      processors: [memory_limiter, resourcedetection, resource, batch]
       exporters: [prometheus]
     logs:
       receivers: [otlp]
-      processors: [resourcedetection, resource, transform/enrich, batch]
+      processors: [memory_limiter, resourcedetection, resource, transform/enrich, batch]
       exporters: [count, debug]

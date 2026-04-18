@@ -1,10 +1,8 @@
 name: otel-cockpit-041
 
-# 5 collectors OpenTelemetry contrib v0.150.0 + Prometheus + Cockpit UI.
-# Cada collector recebe OTLP (gRPC/HTTP), usa count/spanmetrics/servicegraph
-# connectors e expõe métricas para o Prometheus na porta 8889 (app) e 8888
-# (internal). O Cockpit (nginx + SPA) consulta a HTTP API do Prometheus e
-# permite filtros avançados por instância.
+# 5 collectors OpenTelemetry contrib v0.150.1 + Prometheus + Grafana (cockpit
+# provisionado com datasource e 3 dashboards custom). Geração de carga com
+# telemetrygen. zpages/pprof/health_check habilitados em todos os collectors.
 
 x-collector-base: &collector-base
   image: otel/opentelemetry-collector-contrib:0.150.1
@@ -26,6 +24,9 @@ services:
       - "14318:4318"   # OTLP HTTP
       - "18889:8889"   # Prometheus app metrics
       - "18888:8888"   # Prometheus internal metrics
+      - "15679:55679"  # zpages (http://localhost:15679/debug/tracez)
+      # health_check (13133) e pprof (1777) ficam apenas na rede interna,
+      # acessíveis via `docker exec cockpit-loadgen wget -qO- http://otel-collector-1:13133`.
 
   otel-collector-2:
     <<: *collector-base
@@ -97,17 +98,23 @@ services:
       - otel-collector-4
       - otel-collector-5
 
-  cockpit:
-    image: nginx:1.27-alpine
-    container_name: cockpit-ui
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: cockpit-grafana
     restart: unless-stopped
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_SECURITY_ADMIN_PASSWORD: cockpit
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 5s
+      GF_USERS_DEFAULT_THEME: dark
+      GF_FEATURE_TOGGLES_ENABLE: publicDashboards
     volumes:
-      - ./cockpit/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./cockpit/index.html:/usr/share/nginx/html/index.html:ro
-      - ./cockpit/app.js:/usr/share/nginx/html/app.js:ro
-      - ./cockpit/styles.css:/usr/share/nginx/html/styles.css:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
-      - "8080:80"
+      - "3041:3000"
     networks: [cockpit]
     depends_on: [prometheus]
 

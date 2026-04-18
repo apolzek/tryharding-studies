@@ -1,0 +1,298 @@
+{
+  "uid": "cockpit-overview",
+  "title": "OTel Cockpit · Overview",
+  "tags": ["otel", "cockpit", "overview"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {
+    "refresh_intervals": ["15s", "30s", "1m", "5m", "15m"]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "label": "Instance",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": { "query": "label_values(up{job=\"collector-app\"}, instance)", "refId": "StandardVariableQuery" },
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".+",
+        "refresh": 2,
+        "sort": 1
+      },
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": { "query": "label_values(otelpoc_spans_total, service_name)", "refId": "StandardVariableQuery" },
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".+",
+        "refresh": 2,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    { "id": 100, "type": "row", "title": "Totals", "collapsed": false, "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }, "panels": [] },
+
+    {
+      "id": 1, "type": "stat", "title": "Total Spans Accepted",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 1, "w": 4, "h": 5 },
+      "targets": [{ "refId": "A", "expr": "sum(otelcol_receiver_accepted_spans_total{instance=~\"$instance\"})", "legendFormat": "spans" }],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 1, "color": { "mode": "fixed", "fixedColor": "blue" } } },
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "textMode": "auto", "reduceOptions": { "values": false, "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Total Logs Accepted",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 4, "y": 1, "w": 4, "h": 5 },
+      "targets": [{ "refId": "A", "expr": "sum(otelcol_receiver_accepted_log_records_total{instance=~\"$instance\"})", "legendFormat": "logs" }],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 1, "color": { "mode": "fixed", "fixedColor": "light-blue" } } },
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "values": false, "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 3, "type": "stat", "title": "Total Metric Points Accepted",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 8, "y": 1, "w": 4, "h": 5 },
+      "targets": [{ "refId": "A", "expr": "sum(otelcol_receiver_accepted_metric_points_total{instance=~\"$instance\"})", "legendFormat": "metrics" }],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 1, "color": { "mode": "fixed", "fixedColor": "orange" } } },
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "values": false, "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 4, "type": "stat", "title": "Error Spans",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 12, "y": 1, "w": 4, "h": 5 },
+      "targets": [{ "refId": "A", "expr": "sum(otelpoc_spans_errors_total{instance=~\"$instance\"})", "legendFormat": "errors" }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short", "decimals": 0,
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 50 },
+            { "color": "red", "value": 500 }
+          ] }
+        }
+      },
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "values": false, "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 5, "type": "stat", "title": "p95 Latency",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 16, "y": 1, "w": 4, "h": 5 },
+      "targets": [{ "refId": "A", "expr": "histogram_quantile(0.95, sum by (le) (rate(traces_spanmetrics_duration_milliseconds_bucket{instance=~\"$instance\"}[$__rate_interval])))", "legendFormat": "p95" }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms", "decimals": 1,
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 100 },
+            { "color": "red", "value": 500 }
+          ] }
+        }
+      },
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "values": false, "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 6, "type": "stat", "title": "Collectors UP",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 20, "y": 1, "w": 4, "h": 5 },
+      "targets": [
+        { "refId": "A", "expr": "sum(up{job=\"collector-app\",instance=~\"$instance\"})", "legendFormat": "up" },
+        { "refId": "B", "expr": "count(up{job=\"collector-app\"})", "legendFormat": "total" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short", "decimals": 0,
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "yellow", "value": 1 },
+            { "color": "green", "value": 5 }
+          ] }
+        }
+      },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "/^up$/" } }
+    },
+
+    { "id": 101, "type": "row", "title": "Signal mix & throughput", "gridPos": { "x": 0, "y": 6, "w": 24, "h": 1 }, "panels": [] },
+
+    {
+      "id": 10, "type": "piechart", "title": "Signal distribution (accepted cumulative)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 7, "w": 8, "h": 9 },
+      "targets": [
+        { "refId": "A", "expr": "sum(otelcol_receiver_accepted_spans_total{instance=~\"$instance\"})",        "legendFormat": "spans" },
+        { "refId": "B", "expr": "sum(otelcol_receiver_accepted_log_records_total{instance=~\"$instance\"})",  "legendFormat": "logs" },
+        { "refId": "C", "expr": "sum(otelcol_receiver_accepted_metric_points_total{instance=~\"$instance\"})","legendFormat": "metrics" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [],
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "spans" },   "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "logs" },    "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "light-blue" } }] },
+          { "matcher": { "id": "byName", "options": "metrics" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] }
+        ]
+      },
+      "options": {
+        "pieType": "donut",
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "legend": { "displayMode": "list", "placement": "right", "values": ["value", "percent"] },
+        "displayLabels": ["percent"],
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 11, "type": "timeseries", "title": "Throughput /s  ·  spans · logs · metrics",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 8, "y": 7, "w": 16, "h": 9 },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(otelcol_receiver_accepted_spans_total{instance=~\"$instance\"}[$__rate_interval]))",        "legendFormat": "spans" },
+        { "refId": "B", "expr": "sum(rate(otelcol_receiver_accepted_log_records_total{instance=~\"$instance\"}[$__rate_interval]))",  "legendFormat": "logs" },
+        { "refId": "C", "expr": "sum(rate(otelcol_receiver_accepted_metric_points_total{instance=~\"$instance\"}[$__rate_interval]))","legendFormat": "metrics" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cps", "decimals": 1,
+          "custom": { "drawStyle": "line", "lineWidth": 1.5, "fillOpacity": 15, "showPoints": "never", "stacking": { "mode": "normal" } }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "spans" },   "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "logs" },    "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "light-blue" } }] },
+          { "matcher": { "id": "byName", "options": "metrics" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+
+    { "id": 102, "type": "row", "title": "Per-instance detail", "gridPos": { "x": 0, "y": 16, "w": 24, "h": 1 }, "panels": [] },
+
+    {
+      "id": 20, "type": "timeseries", "title": "Spans /s  ·  by instance",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 17, "w": 12, "h": 8 },
+      "targets": [{ "refId": "A", "expr": "sum by (instance) (rate(otelcol_receiver_accepted_spans_total{instance=~\"$instance\"}[$__rate_interval]))", "legendFormat": "{{instance}}" }],
+      "fieldConfig": { "defaults": { "unit": "cps", "decimals": 1, "custom": { "drawStyle": "line", "lineWidth": 1.4, "fillOpacity": 10, "showPoints": "never" } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 21, "type": "timeseries", "title": "Logs /s  ·  by severity (stacked)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 12, "y": 17, "w": 12, "h": 8 },
+      "targets": [{ "refId": "A", "expr": "sum by (severity_bucket) (rate(otelpoc_logs_by_severity_total{instance=~\"$instance\"}[$__rate_interval]))", "legendFormat": "{{severity_bucket}}" }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cps", "decimals": 1,
+          "custom": { "drawStyle": "bars", "lineWidth": 0, "fillOpacity": 80, "stacking": { "mode": "normal" } }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "info" },  "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "warn" },  "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] },
+          { "matcher": { "id": "byName", "options": "error" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+
+    {
+      "id": 22, "type": "timeseries", "title": "Errors /min  ·  by instance",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 25, "w": 8, "h": 8 },
+      "targets": [{ "refId": "A", "expr": "sum by (instance) (rate(otelpoc_spans_errors_total{instance=~\"$instance\"}[$__rate_interval])) * 60", "legendFormat": "{{instance}}" }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short", "decimals": 1,
+          "custom": { "drawStyle": "bars", "lineWidth": 0, "fillOpacity": 90 },
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 23, "type": "timeseries", "title": "p95 latency  ·  by instance",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 8, "y": 25, "w": 8, "h": 8 },
+      "targets": [{ "refId": "A", "expr": "histogram_quantile(0.95, sum by (le, instance) (rate(traces_spanmetrics_duration_milliseconds_bucket{instance=~\"$instance\"}[$__rate_interval])))", "legendFormat": "{{instance}}" }],
+      "fieldConfig": { "defaults": { "unit": "ms", "decimals": 1, "custom": { "drawStyle": "line", "lineWidth": 1.4, "fillOpacity": 0, "showPoints": "never" } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 24, "type": "timeseries", "title": "Error rate %  ·  by service",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 16, "y": 25, "w": 8, "h": 8 },
+      "targets": [{ "refId": "A", "expr": "100 * (sum by (service_name) (rate(otelpoc_spans_errors_total{instance=~\"$instance\",service_name=~\"$service\"}[$__rate_interval])) / clamp_min(sum by (service_name) (rate(otelpoc_spans_total{instance=~\"$instance\",service_name=~\"$service\"}[$__rate_interval])), 0.0001))", "legendFormat": "{{service_name}}" }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "decimals": 2, "min": 0, "max": 100,
+          "custom": { "drawStyle": "line", "lineWidth": 1.4, "fillOpacity": 10, "showPoints": "never" }
+        }
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } }
+    },
+
+    { "id": 103, "type": "row", "title": "Instances table", "gridPos": { "x": 0, "y": 33, "w": 24, "h": 1 }, "panels": [] },
+
+    {
+      "id": 30, "type": "table", "title": "Instances · consolidated",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "x": 0, "y": 34, "w": 24, "h": 9 },
+      "targets": [
+        { "refId": "up",      "expr": "up{job=\"collector-app\",instance=~\"$instance\"}", "instant": true, "format": "table" },
+        { "refId": "spans",   "expr": "sum by (instance) (rate(otelcol_receiver_accepted_spans_total{instance=~\"$instance\"}[$__rate_interval]))", "instant": true, "format": "table", "legendFormat": "spans" },
+        { "refId": "logs",    "expr": "sum by (instance) (rate(otelcol_receiver_accepted_log_records_total{instance=~\"$instance\"}[$__rate_interval]))", "instant": true, "format": "table", "legendFormat": "logs" },
+        { "refId": "metrics", "expr": "sum by (instance) (rate(otelcol_receiver_accepted_metric_points_total{instance=~\"$instance\"}[$__rate_interval]))", "instant": true, "format": "table", "legendFormat": "metrics" },
+        { "refId": "errors",  "expr": "sum by (instance) (rate(otelpoc_spans_errors_total{instance=~\"$instance\"}[$__rate_interval])) * 60", "instant": true, "format": "table" },
+        { "refId": "p95",     "expr": "histogram_quantile(0.95, sum by (le, instance) (rate(traces_spanmetrics_duration_milliseconds_bucket{instance=~\"$instance\"}[$__rate_interval])))", "instant": true, "format": "table" },
+        { "refId": "cpu",     "expr": "avg by (instance) (rate(system_cpu_time_seconds_total{instance=~\"$instance\",state!=\"idle\"}[$__rate_interval])) * 100", "instant": true, "format": "table" },
+        { "refId": "mem",     "expr": "max by (instance) (otelcol_process_memory_rss_bytes{instance=~\"$instance\"})", "instant": true, "format": "table" },
+        { "refId": "uptime",  "expr": "max by (instance) (otelcol_process_uptime_seconds_total{instance=~\"$instance\"})", "instant": true, "format": "table" }
+      ],
+      "transformations": [
+        { "id": "joinByField", "options": { "byField": "instance", "mode": "outer" } },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time up": true, "Time spans": true, "Time logs": true, "Time metrics": true, "Time errors": true, "Time p95": true, "Time cpu": true, "Time mem": true, "Time uptime": true, "job": true, "__name__": true },
+            "indexByName": {
+              "instance": 0, "Value #up": 1, "Value #spans": 2, "Value #logs": 3, "Value #metrics": 4,
+              "Value #errors": 5, "Value #p95": 6, "Value #cpu": 7, "Value #mem": 8, "Value #uptime": 9
+            },
+            "renameByName": {
+              "instance": "instance", "Value #up": "UP", "Value #spans": "spans/s", "Value #logs": "logs/s", "Value #metrics": "metrics/s",
+              "Value #errors": "errors/min", "Value #p95": "p95 (ms)", "Value #cpu": "CPU %", "Value #mem": "mem RSS", "Value #uptime": "uptime (s)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto" } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "UP" },        "properties": [{ "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } }, { "id": "mappings", "value": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }] }] },
+          { "matcher": { "id": "byName", "options": "spans/s" },   "properties": [{ "id": "unit", "value": "cps" }, { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient" } }] },
+          { "matcher": { "id": "byName", "options": "logs/s" },    "properties": [{ "id": "unit", "value": "cps" }] },
+          { "matcher": { "id": "byName", "options": "metrics/s" }, "properties": [{ "id": "unit", "value": "cps" }] },
+          { "matcher": { "id": "byName", "options": "errors/min" },"properties": [{ "id": "unit", "value": "short" }, { "id": "custom.cellOptions", "value": { "type": "color-text" } }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 10 }] } }] },
+          { "matcher": { "id": "byName", "options": "p95 (ms)" },  "properties": [{ "id": "unit", "value": "ms" }] },
+          { "matcher": { "id": "byName", "options": "CPU %" },     "properties": [{ "id": "unit", "value": "percent" }] },
+          { "matcher": { "id": "byName", "options": "mem RSS" },   "properties": [{ "id": "unit", "value": "bytes" }] },
+          { "matcher": { "id": "byName", "options": "uptime (s)" },"properties": [{ "id": "unit", "value": "s" }] }
+        ]
+      },
+      "options": { "showHeader": true, "footer": { "show": false } }
+    }
+  ]
+}
