@@ -1,0 +1,128 @@
+name: otel-cockpit-041
+
+# 5 collectors OpenTelemetry contrib v0.150.0 + Prometheus + Cockpit UI.
+# Cada collector recebe OTLP (gRPC/HTTP), usa count/spanmetrics/servicegraph
+# connectors e expõe métricas para o Prometheus na porta 8889 (app) e 8888
+# (internal). O Cockpit (nginx + SPA) consulta a HTTP API do Prometheus e
+# permite filtros avançados por instância.
+
+x-collector-base: &collector-base
+  image: otel/opentelemetry-collector-contrib:0.150.1
+  restart: unless-stopped
+  command: ["--config=/etc/otelcol/config.yaml"]
+  volumes:
+    - ./collectors/collector-config.yaml:/etc/otelcol/config.yaml:ro
+  networks: [cockpit]
+
+services:
+  otel-collector-1:
+    <<: *collector-base
+    container_name: otel-collector-1
+    hostname: otel-collector-1
+    environment:
+      COLLECTOR_ID: "1"
+    ports:
+      - "14317:4317"   # OTLP gRPC
+      - "14318:4318"   # OTLP HTTP
+      - "18889:8889"   # Prometheus app metrics
+      - "18888:8888"   # Prometheus internal metrics
+
+  otel-collector-2:
+    <<: *collector-base
+    container_name: otel-collector-2
+    hostname: otel-collector-2
+    environment:
+      COLLECTOR_ID: "2"
+    ports:
+      - "24317:4317"
+      - "24318:4318"
+      - "28889:8889"
+      - "28888:8888"
+
+  otel-collector-3:
+    <<: *collector-base
+    container_name: otel-collector-3
+    hostname: otel-collector-3
+    environment:
+      COLLECTOR_ID: "3"
+    ports:
+      - "34317:4317"
+      - "34318:4318"
+      - "38889:8889"
+      - "38888:8888"
+
+  otel-collector-4:
+    <<: *collector-base
+    container_name: otel-collector-4
+    hostname: otel-collector-4
+    environment:
+      COLLECTOR_ID: "4"
+    ports:
+      - "44317:4317"
+      - "44318:4318"
+      - "48889:8889"
+      - "48888:8888"
+
+  otel-collector-5:
+    <<: *collector-base
+    container_name: otel-collector-5
+    hostname: otel-collector-5
+    environment:
+      COLLECTOR_ID: "5"
+    ports:
+      - "54317:4317"
+      - "54318:4318"
+      - "58889:8889"
+      - "58888:8888"
+
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    container_name: cockpit-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=6h
+      - --web.enable-remote-write-receiver
+      - --web.enable-lifecycle
+      - --enable-feature=otlp-write-receiver
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9091:9090"
+    networks: [cockpit]
+    depends_on:
+      - otel-collector-1
+      - otel-collector-2
+      - otel-collector-3
+      - otel-collector-4
+      - otel-collector-5
+
+  cockpit:
+    image: nginx:1.27-alpine
+    container_name: cockpit-ui
+    restart: unless-stopped
+    volumes:
+      - ./cockpit/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./cockpit/index.html:/usr/share/nginx/html/index.html:ro
+      - ./cockpit/app.js:/usr/share/nginx/html/app.js:ro
+      - ./cockpit/styles.css:/usr/share/nginx/html/styles.css:ro
+    ports:
+      - "8080:80"
+    networks: [cockpit]
+    depends_on: [prometheus]
+
+  loadgen:
+    build: ./loadgen
+    container_name: cockpit-loadgen
+    restart: unless-stopped
+    networks: [cockpit]
+    depends_on:
+      - otel-collector-1
+      - otel-collector-2
+      - otel-collector-3
+      - otel-collector-4
+      - otel-collector-5
+
+networks:
+  cockpit:
+    driver: bridge

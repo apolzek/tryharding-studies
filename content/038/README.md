@@ -1,8 +1,14 @@
+---
+title: tryhard-player — local YouTube-style video player from scratch
+tags: [frontend, video, nodejs, http-range-streaming, ffmpeg]
+status: stable
+---
+
 # tryhard-player
 
-Player de vídeo local estilo YouTube, do zero. Engine reutilizável + UI de biblioteca.
+Local YouTube-style video player, from scratch. Reusable engine + library UI.
 
-## Como rodar
+## How to run
 
 ```bash
 cd content/038
@@ -10,11 +16,11 @@ npm install
 npm start
 ```
 
-Abra `http://localhost:3000`. Coloque arquivos em `videos/` (`.mp4`, `.webm`, `.mkv`, `.mov`, `.m4v`).
+Open `http://localhost:3000`. Drop files into `videos/` (`.mp4`, `.webm`, `.mkv`, `.mov`, `.m4v`).
 
-### Thumbnails (opcional)
+### Thumbnails (optional)
 
-Geração fora da engine — basta colocar `thumbnails/<id>.jpg` onde `<id>` é o nome do arquivo de vídeo slugificado. Para gerar em massa com ffmpeg:
+Thumbnail generation is out-of-engine — just place `thumbnails/<id>.jpg` where `<id>` is the slugified video filename. To batch-generate with ffmpeg:
 
 ```bash
 for f in videos/*.mp4; do
@@ -23,11 +29,11 @@ for f in videos/*.mp4; do
 done
 ```
 
-Sem thumbnail, o grid usa o próprio vídeo em `#t=2` como preview.
+Without a thumbnail, the grid uses the video itself at `#t=2` as preview.
 
 ## Engine (`public/js/player.js`)
 
-Classe `TryhardPlayer`, zero dependências. Para usar em outro projeto:
+`TryhardPlayer` class, zero dependencies. To embed it in another project:
 
 ```html
 <link rel="stylesheet" href="player.css" />
@@ -36,7 +42,7 @@ Classe `TryhardPlayer`, zero dependências. Para usar em outro projeto:
   import { TryhardPlayer } from "./player.js";
   const player = new TryhardPlayer(document.getElementById("p"), {
     src: "/stream/video.mp4",
-    title: "Meu vídeo",
+    title: "My video",
     autoplay: false,
   });
 </script>
@@ -48,10 +54,10 @@ API:
 - `toggleMute()`, `toggleFullscreen()`, `togglePip()`
 - `destroy()`
 
-Atalhos de teclado: `space`/`k` play, `m` mute, `f` fullscreen, `i` PiP, `j`/`l` ±10s, `←`/`→` ±5s, `↑`/`↓` volume, `0–9` seek percentual.
+Keyboard shortcuts: `space`/`k` play, `m` mute, `f` fullscreen, `i` PiP, `j`/`l` ±10s, `←`/`→` ±5s, `↑`/`↓` volume, `0–9` percentage seek.
 
 ## Backend (`server.js`)
 
-- `GET /api/videos` — lista os arquivos em `videos/`
-- `GET /stream/:name` — streaming com HTTP Range (seek rápido, sem carregar tudo na RAM)
-- `GET /thumbnails/:name` — thumbnails estáticas
+- `GET /api/videos` — lists files under `videos/`
+- `GET /stream/:name` — HTTP Range streaming (fast seek, no full-file buffering in RAM)
+- `GET /thumbnails/:name` — static thumbnails

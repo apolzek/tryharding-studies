@@ -1,3 +1,9 @@
+---
+title: userwatch
+tags: [ebpf, observability, go, python, sqlite, linux]
+status: stable
+---
+
 # userwatch
 
 Low-overhead user-productivity monitoring for Ubuntu using **eBPF**. Three

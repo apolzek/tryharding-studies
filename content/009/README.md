@@ -1,3 +1,9 @@
+---
+title: Quick guide to chart types and when to use them
+tags: [observability, grafana, data-visualization, python]
+status: stable
+---
+
 ## Quick guide to chart types and when to use them
 
 ### Objectives

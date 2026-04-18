@@ -1,3 +1,9 @@
+---
+title: "MCP servers for observability: Prometheus, VictoriaMetrics, and Grafana"
+tags: [ai-ml, mcp, observability, prometheus, victoriametrics, grafana]
+status: stable
+---
+
 ## MCP servers for observability: Prometheus, VictoriaMetrics, and Grafana
 
 ### Objectives

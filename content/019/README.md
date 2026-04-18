@@ -1,3 +1,9 @@
+---
+title: Does injected latency cause queue buildup between OTel collectors?
+tags: [observability, opentelemetry, toxiproxy, networking]
+status: stable
+---
+
 # Does injected latency cause queue buildup between OTel collectors?
 
 > **Author:** Vinícius Gomes Batista (*apolzek*)

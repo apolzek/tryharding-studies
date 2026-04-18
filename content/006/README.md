@@ -1,3 +1,9 @@
+---
+title: Custom OpenTelemetry Collector
+tags: [observability, opentelemetry, go, otel-collector]
+status: stable
+---
+
 ## Custom OpenTelemetry Collector
 
 ### Objectives

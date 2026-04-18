@@ -1,3 +1,9 @@
+---
+title: Apache Flink Kubernetes Operator on Kind
+tags: [data-engineering, flink, kubernetes, kind]
+status: stable
+---
+
 # PoC 025 — Apache Flink Kubernetes Operator on Kind
 
 This lab spins up a local Kubernetes cluster with [kind](https://kind.sigs.k8s.io/),

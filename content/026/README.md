@@ -1,3 +1,9 @@
+---
+title: Blackbox exporter on Kind monitored by kube-prometheus-stack
+tags: [observability, kubernetes, prometheus, blackbox-exporter, kind]
+status: stable
+---
+
 ## Blackbox exporter on Kind monitored by kube-prometheus-stack
 
 ### Objectives

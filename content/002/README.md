@@ -1,3 +1,9 @@
+---
+title: Running Prometheus, Grafana, Tempo and OpenTelemetry locally with Docker Compose
+tags: [observability, opentelemetry, prometheus, grafana, tempo, loki, docker-compose]
+status: stable
+---
+
 ## Running Prometheus, Grafana, Tempo and OpenTelemetry locally with Docker Compose
 
 ### Objectives

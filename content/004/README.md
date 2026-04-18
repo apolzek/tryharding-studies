@@ -1,3 +1,9 @@
+---
+title: PostgreSQL Replication
+tags: [databases, postgres, replication, docker-compose]
+status: stable
+---
+
 ## PostgreSQL Replication
 
 ### Objectives

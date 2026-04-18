@@ -1,3 +1,9 @@
+---
+title: Polyglot distributed tracing with OpenTelemetry across Go, Java, Python and Rust
+tags: [observability, opentelemetry, go, java, python, rust, jaeger, prometheus, docker-compose]
+status: stable
+---
+
 ## Polyglot distributed tracing with OpenTelemetry across Go, Java, Python and Rust
 
 ### Objectives

@@ -1,3 +1,9 @@
+---
+title: Routing OTLP Data to Kafka with Vector
+tags: [observability, vector, kafka, opentelemetry]
+status: stable
+---
+
 ## Routing OTLP Data to Kafka with Vector
 
 ### Objectives

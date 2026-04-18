@@ -1,3 +1,9 @@
+---
+title: RedQueen — Jarvis × Resident Evil
+tags: [ai-ml, ollama, fastapi, python, discord, frontend]
+status: stable
+---
+
 # RedQueen — Jarvis × Resident Evil
 
 Hostile-but-loyal AI terminal. Voice input, Discord bridge, local Llama,

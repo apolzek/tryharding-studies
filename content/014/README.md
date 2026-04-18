@@ -1,3 +1,9 @@
+---
+title: Storing OpenTelemetry Data in ClickHouse
+tags: [observability, opentelemetry, clickhouse, databases, grafana]
+status: stable
+---
+
 ## Storing OpenTelemetry Data in ClickHouse
 
 ### Objectives

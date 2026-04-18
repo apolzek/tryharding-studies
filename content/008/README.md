@@ -1,3 +1,9 @@
+---
+title: Understanding the high cardinality problem in Prometheus
+tags: [observability, prometheus, go]
+status: stable
+---
+
 # Understanding the high cardinality problem in Prometheus
 
 > **Author:** Vinícius Gomes Batista (*apolzek*)

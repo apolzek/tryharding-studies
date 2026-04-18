@@ -1,3 +1,9 @@
+---
+title: Progressive delivery on Kind — Argo CD + Argo Rollouts (canary & blue/green) with Envoy Gateway
+tags: [kubernetes, argo-cd, argo-rollouts, envoy, ci-cd, kind]
+status: stable
+---
+
 ## Progressive delivery on Kind — Argo CD + Argo Rollouts (canary & blue/green) with Envoy Gateway
 
 ### Objectives

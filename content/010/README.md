@@ -1,3 +1,9 @@
+---
+title: Frontend Observability with Grafana Faro and Grafana Alloy
+tags: [observability, frontend, faro, alloy, grafana, loki, tempo, opentelemetry]
+status: stable
+---
+
 ## Frontend Observability with Grafana Faro and Grafana Alloy
 
 ### Objectives

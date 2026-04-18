@@ -1,3 +1,9 @@
+---
+title: Discord bot with local Whisper transcription on GPU
+tags: [ai-ml, discord, whisper, gpu, python]
+status: stable
+---
+
 ## Discord bot with local Whisper transcription on GPU
 
 ### Objectives

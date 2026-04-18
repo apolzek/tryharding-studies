@@ -1,3 +1,9 @@
+---
+title: Exploring alternatives for load balancing and reverse proxy
+tags: [networking, reverse-proxy, load-balancer, caddy, envoy, haproxy, nginx, traefik, docker-compose]
+status: stable
+---
+
 ## Exploring alternatives for load balancing and reverse proxy
 
 ### Objectives

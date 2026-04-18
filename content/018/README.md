@@ -1,3 +1,9 @@
+---
+title: Analyzing OTLP Protocol Encodings with tcpdump
+tags: [observability, opentelemetry, tcpdump, networking, python]
+status: stable
+---
+
 ## Analyzing OTLP Protocol Encodings with tcpdump
 
 ### Objectives

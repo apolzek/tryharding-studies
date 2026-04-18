@@ -1,29 +1,32 @@
-# 037 — k0s POC em containers (Ubuntu 24.04)
+---
+title: k0s cluster PoC in containers (Ubuntu 24.04)
+tags: [kubernetes, k0s, containers, docker-compose, hardening, cni, pod-security-admission, local-pv, ubuntu]
+status: stable
+---
 
-POC de cluster Kubernetes com **k0s** (distribuição leve do k8s), usando
-**1 control plane + 2 workers**, cada nó é um container Docker rodando
-uma imagem Ubuntu 24.04 customizada. O objetivo é validar a automação
-antes de subir em uma VM.
+# 037 — k0s PoC in containers (Ubuntu 24.04)
 
-## Estrutura
+Kubernetes cluster PoC with **k0s** (a lightweight k8s distribution), using **1 control plane + 2 workers**, where each node is a Docker container running a custom Ubuntu 24.04 image. The goal is to validate automation before bringing it up on a VM.
+
+## Layout
 
 ```
 037/
 ├── Dockerfile                 # ubuntu:24.04 + k0s + hardening
-├── docker-compose.yml         # 1 controller + 2 workers, mesma rede
+├── docker-compose.yml         # 1 controller + 2 workers, same network
 ├── Makefile
 ├── config/
-│   ├── k0s.yaml               # config do cluster (hardening no kube-apiserver)
-│   └── audit-policy.yaml      # política de auditoria do apiserver
+│   ├── k0s.yaml               # cluster config (apiserver hardening)
+│   └── audit-policy.yaml      # apiserver audit policy
 ├── scripts/
-│   ├── install-k0s.sh         # build-time: baixa o binário k0s
-│   ├── entrypoint.sh          # runtime: sobe controller ou worker
-│   └── test-cluster.sh        # host-side: valida nodes e sobe um app
+│   ├── install-k0s.sh         # build-time: downloads the k0s binary
+│   ├── entrypoint.sh          # runtime: brings up controller or worker
+│   └── test-cluster.sh        # host-side: validates nodes and deploys an app
 └── manifests/
-    └── sample-app.yaml        # namespace PSA + Deployment + PVC + NetworkPolicy
+    └── sample-app.yaml        # PSA namespace + Deployment + PVC + NetworkPolicy
 ```
 
-## Como os containers se enxergam
+## How the containers see each other
 
 ```mermaid
 flowchart LR
@@ -35,7 +38,7 @@ flowchart LR
         SHARED["shared volume<br/>/shared/worker.token"]
     end
 
-    HOST -->|kubeconfig de fora do docker| CONTROLLER
+    HOST -->|kubeconfig from outside docker| CONTROLLER
     WORKER1 -->|6443| CONTROLLER
     WORKER2 -->|6443| CONTROLLER
     CONTROLLER -->|writes token| SHARED
@@ -43,61 +46,53 @@ flowchart LR
     SHARED -->|reads token| WORKER2
 ```
 
-- **Troca de token**: o controller emite o join token para worker quando o
-  apiserver fica pronto e escreve em `/shared/worker.token` (named volume
-  compartilhado, montado **read-only** nos workers). Os workers ficam em
-  poll até o arquivo aparecer.
-- **CNI**: `kube-router` (default do k0s) em modo iptables.
-- **Datastore**: `kine` sobre SQLite — single-node CP, leve. Para HA use
-  etcd (mudar `spec.storage.type: etcd` em `config/k0s.yaml`).
+- **Token exchange**: the controller issues the worker join token once the apiserver is ready and writes it to `/shared/worker.token` (a named volume mounted **read-only** on the workers). Workers poll until the file shows up.
+- **CNI**: `kube-router` (k0s default) in iptables mode.
+- **Datastore**: `kine` over SQLite — single-node CP, lightweight. For HA switch to etcd (set `spec.storage.type: etcd` in `config/k0s.yaml`).
 
-## Hardening aplicado
+## Applied hardening
 
-**Imagem**
-- Base `ubuntu:24.04`, apenas pacotes necessários (`iproute2`, `iptables`,
-  `kmod`, `conntrack`, `ethtool`, `socat`, `jq`, `tini`, `ca-certificates`).
-- Sem SSH, sem docs, caches do apt removidos, `/usr/share/{doc,man}` limpos.
-- `tini` como PID 1 para propagação correta de sinais / reap de zumbis.
-- `k0s.yaml` e `audit-policy.yaml` com `0640`.
+**Image**
+- `ubuntu:24.04` base, only required packages (`iproute2`, `iptables`, `kmod`, `conntrack`, `ethtool`, `socat`, `jq`, `tini`, `ca-certificates`).
+- No SSH, no docs, apt caches purged, `/usr/share/{doc,man}` wiped.
+- `tini` as PID 1 for proper signal propagation / zombie reaping.
+- `k0s.yaml` and `audit-policy.yaml` at `0640`.
 
-**kube-apiserver** (via `spec.api.extraArgs` em `config/k0s.yaml`)
+**kube-apiserver** (via `spec.api.extraArgs` in `config/k0s.yaml`)
 - `anonymous-auth=false`
 - `authorization-mode=Node,RBAC`
 - `profiling=false`
 - `tls-min-version=VersionTLS12`
-- Audit log habilitado em `/var/log/k0s/audit.log` com rotação.
+- Audit log enabled at `/var/log/k0s/audit.log` with rotation.
 
 **kube-controller-manager / scheduler**
-- `bind-address=127.0.0.1` (métricas/debug só locais)
+- `bind-address=127.0.0.1` (metrics/debug local only)
 - `profiling=false`
 
-**Rede**
-- CNI kube-router com NetworkPolicy ativo.
+**Network**
+- kube-router CNI with NetworkPolicy enabled.
 
-**Cargas de trabalho (sample-app)**
-- Namespace com labels de **Pod Security Admission** (`enforce=baseline`,
-  `warn/audit=restricted`).
-- Container rodando **não-root** (uid/gid 101, `runAsNonRoot: true`).
-- `readOnlyRootFilesystem: true`, `allowPrivilegeEscalation: false`,
-  `capabilities: drop: ["ALL"]`, `seccompProfile: RuntimeDefault`.
-- `resources.requests/limits` definidos (evita noisy neighbour / OOM geral).
-- Imagem `nginxinc/nginx-unprivileged` (bind em :8080, não precisa de root).
-- `NetworkPolicy` default-deny de ingress + `allow-web` abrindo apenas a
-  porta 8080 do pod `app=web`.
+**Workloads (sample-app)**
+- Namespace with **Pod Security Admission** labels (`enforce=baseline`, `warn/audit=restricted`).
+- Container runs **non-root** (uid/gid 101, `runAsNonRoot: true`).
+- `readOnlyRootFilesystem: true`, `allowPrivilegeEscalation: false`, `capabilities: drop: ["ALL"]`, `seccompProfile: RuntimeDefault`.
+- `resources.requests/limits` defined (prevents noisy-neighbour / OOM cascades).
+- Image `nginxinc/nginx-unprivileged` (binds to :8080, no root required).
+- `NetworkPolicy` default-deny ingress + `allow-web` opening only pod `app=web` port 8080.
 
-## Uso
+## Usage
 
 ```bash
-make build      # builda a imagem ubuntu+k0s
-make up         # sobe controller + 2 workers
+make build      # builds the ubuntu+k0s image
+make up         # starts controller + 2 workers
 make nodes      # kubectl get nodes -o wide
-make test       # aplica sample-app, valida rollout e faz smoke curl
-make kubeconfig # exporta kubeconfig para usar kubectl de fora
-make down       # para tudo (volumes ficam)
-make clean      # down -v + remove kubeconfig
+make test       # applies sample-app, waits for rollout and runs a smoke curl
+make kubeconfig # exports kubeconfig so you can use kubectl from the host
+make down       # stops everything (volumes kept)
+make clean      # down -v + removes kubeconfig
 ```
 
-Acesso via host:
+Host access:
 
 ```bash
 make kubeconfig
@@ -105,100 +100,78 @@ export KUBECONFIG=$PWD/kubeconfig
 kubectl get nodes
 ```
 
-## Disco / storage
+## Disk / storage
 
-### Como fica nos containers (POC)
+### Inside the containers (PoC)
 
-Cada nó tem volumes nomeados:
+Each node gets named volumes:
 
-| Volume              | Mount            | Função                                    |
-|---------------------|------------------|-------------------------------------------|
-| `controller-data`   | `/var/lib/k0s`   | Estado do CP (kine/SQLite, PKI, manifests)|
-| `controller-log`    | `/var/log/k0s`   | Audit log do apiserver                    |
-| `worker-N-data`     | `/var/lib/k0s`   | kubelet state, CNI, logs                  |
-| `worker-N-disk`     | `/mnt/data`      | "Disco de dados" para PVs hostPath/local  |
-| `shared`            | `/shared`        | Troca do join token                       |
+| Volume              | Mount            | Purpose                                     |
+|---------------------|------------------|---------------------------------------------|
+| `controller-data`   | `/var/lib/k0s`   | CP state (kine/SQLite, PKI, manifests)      |
+| `controller-log`    | `/var/log/k0s`   | apiserver audit log                         |
+| `worker-N-data`     | `/var/lib/k0s`   | kubelet state, CNI, logs                    |
+| `worker-N-disk`     | `/mnt/data`      | "Data disk" for hostPath/local PVs          |
+| `shared`            | `/shared`        | Join-token exchange                         |
 
-### PV / PVC no POC
+### PV / PVC in the PoC
 
-O `manifests/sample-app.yaml` cria um `PersistentVolume` do tipo `local`
-apontando para `/mnt/data/demo` no **worker-1**, com `nodeAffinity` forçando
-o pod a ser agendado nesse nó. Storage class `local-hostpath` (sem
-provisioner — volume criado manualmente, modo estático).
+`manifests/sample-app.yaml` creates a `local`-type `PersistentVolume` pointing to `/mnt/data/demo` on **worker-1**, with `nodeAffinity` pinning the pod to that node. Storage class `local-hostpath` (no provisioner — the volume is created manually, static mode).
 
-Fluxo:
-1. `test-cluster.sh` cria `/mnt/data/demo` no container do worker-1 (via
-   `docker exec`). Em uma VM, seria `mkdir` direto no disco.
-2. PV `demo-pv-worker-1` declara `nodeAffinity: worker-1` + `local.path: /mnt/data/demo`.
-3. PVC `demo-pvc` (RWO, 1Gi) bind ao PV quando o pod é agendado.
-4. Deployment `web` (1 réplica, `nodeSelector: worker-1`) monta o PVC em
-   `/usr/share/nginx/html`. Um `initContainer` semeia `index.html` no PV.
-5. Nginx serve o conteúdo lido do disco local do worker-1.
+Flow:
+1. `test-cluster.sh` creates `/mnt/data/demo` inside worker-1 via `docker exec`. On a VM this would be a plain `mkdir` on disk.
+2. PV `demo-pv-worker-1` declares `nodeAffinity: worker-1` + `local.path: /mnt/data/demo`.
+3. PVC `demo-pvc` (RWO, 1Gi) binds to the PV once the pod is scheduled.
+4. Deployment `web` (1 replica, `nodeSelector: worker-1`) mounts the PVC at `/usr/share/nginx/html`. An `initContainer` seeds `index.html` into the PV.
+5. Nginx serves content read from worker-1's local disk.
 
-Por que `local` e não `hostPath`?  `hostPath` não expressa afinidade de nó
-e quebra se o scheduler colocar o pod em outro worker. `local` PV é a
-forma recomendada de expor disco local no k8s.
+Why `local` and not `hostPath`? `hostPath` doesn't express node affinity and breaks if the scheduler places the pod on a different worker. `local` PV is the recommended way to expose local disk in k8s.
 
-### Em produção (VM)
+### Production (VM)
 
-Na VM, use um **disco dedicado** para os dados do k0s/containerd:
+On a VM, use a **dedicated disk** for k0s/containerd data:
 
 ```bash
-# exemplo: /dev/vdb dedicado, XFS, montado com noatime
+# e.g. dedicated /dev/vdb, XFS, mounted with noatime
 mkfs.xfs -f -L k0s /dev/vdb
 mkdir -p /var/lib/k0s
 echo 'LABEL=k0s /var/lib/k0s xfs defaults,noatime,nodiratime 0 2' >> /etc/fstab
 mount -a
 ```
 
-Por quê: `/var/lib/k0s` guarda imagens de container, overlayfs layers,
-logs dos pods e o datastore (kine/etcd). Em single volume com o root,
-uma Pod barulhenta pode encher o disco e derrubar o SO. Mount separado
-é isolamento barato.
+Rationale: `/var/lib/k0s` holds container images, overlayfs layers, pod logs and the datastore (kine/etcd). Sharing a single volume with the root FS means a noisy pod can fill the disk and take the OS down. A separate mount is cheap isolation.
 
-Para storage dinâmico dentro do cluster na VM, opções:
+For dynamic in-cluster storage on a VM, options:
 
-- **local-path-provisioner** (Rancher) — cria PVs automaticamente em um
-  diretório do nó. Simples, bom para single-node/edge.
-- **Longhorn** / **OpenEBS** — replicação entre nós, snapshots.
-- **CSI** do provedor (EBS, Ceph-CSI, NFS-CSI) em clusters maiores.
+- **local-path-provisioner** (Rancher) — creates PVs automatically in a node directory. Simple, good for single-node/edge.
+- **Longhorn** / **OpenEBS** — cross-node replication, snapshots.
+- **CSI** for your provider (EBS, Ceph-CSI, NFS-CSI) on larger clusters.
 
-Para o POC em containers a escolha foi PV estático para deixar explícito
-o mapeamento `worker-1-disk` ↔ `/mnt/data` ↔ PV.
+For this container PoC, the choice of a static PV makes the mapping `worker-1-disk` ↔ `/mnt/data` ↔ PV explicit.
 
-## Ajustes específicos do "k8s em Docker" (NÃO usar na VM)
+## "k8s-in-Docker" specific tweaks (DO NOT use on a VM)
 
-Para o cluster subir dentro do Docker, o `entrypoint.sh` passa para o
-kubelet flags que **só fazem sentido em container**:
+To get the cluster running inside Docker, `entrypoint.sh` passes kubelet flags that **only make sense inside a container**:
 
-- `--cgroups-per-qos=false --enforce-node-allocatable=` — desliga o
-  gerenciamento da hierarquia QoS (Burstable/Guaranteed/BestEffort) do
-  kubelet, que colide com a delegação de cgroup v2 em container.
-- `--resolv-conf=/etc/resolv.conf.k0s` — evita o loop do CoreDNS quando o
-  `/etc/resolv.conf` do container aponta para o DNS interno do Docker
-  (127.0.0.11), que o CoreDNS detecta como loop e morre.
-- `cgroup: host` no compose — compartilha cgroupns com o host (kubelet
-  consegue criar `/sys/fs/cgroup/k8s.io/...` com todos os controllers).
+- `--cgroups-per-qos=false --enforce-node-allocatable=` — disables kubelet's QoS hierarchy management (Burstable/Guaranteed/BestEffort), which clashes with cgroup v2 delegation inside a container.
+- `--resolv-conf=/etc/resolv.conf.k0s` — avoids the CoreDNS loop triggered when the container's `/etc/resolv.conf` points to Docker's internal DNS (127.0.0.11), which CoreDNS detects as a loop and exits.
+- `cgroup: host` in compose — shares cgroupns with the host (kubelet can create `/sys/fs/cgroup/k8s.io/...` with every controller).
 
-Em VM real, **remova** essas flags: o kubelet faz QoS enforcement
-correto, o resolv.conf do host não tem loops e cgroupns não é problema.
-A variável `K0S_KUBELET_EXTRA_ARGS` permite sobrescrever sem editar o
-entrypoint.
+On a real VM, **remove** those flags: kubelet does QoS enforcement correctly, the host resolv.conf has no loops, and cgroupns is not an issue. The `K0S_KUBELET_EXTRA_ARGS` env allows overriding without editing the entrypoint.
 
-## Migração para VM
+## Migrating to a VM
 
-1. Subir VM com Ubuntu 24.04, 2+ vCPU, 4+ GiB RAM, disco de dados separado
-   em `/var/lib/k0s` (ver seção de disco).
-2. Copiar `config/k0s.yaml` + `config/audit-policy.yaml` para `/etc/k0s/`.
-3. `curl -sSfL https://get.k0s.sh | sudo sh` (ou copiar o binário).
+1. Provision a VM with Ubuntu 24.04, 2+ vCPU, 4+ GiB RAM, a separate data disk at `/var/lib/k0s` (see disk section).
+2. Copy `config/k0s.yaml` + `config/audit-policy.yaml` to `/etc/k0s/`.
+3. `curl -sSfL https://get.k0s.sh | sudo sh` (or copy the binary).
 4. Controller: `sudo k0s install controller --config /etc/k0s/k0s.yaml && sudo k0s start`.
-5. Token para worker: `sudo k0s token create --role=worker --expiry=24h`.
-6. Em cada worker: `sudo k0s install worker --token-file <(echo "<TOKEN>") && sudo k0s start`.
-7. Validar: `sudo k0s kubectl get nodes`.
+5. Worker token: `sudo k0s token create --role=worker --expiry=24h`.
+6. On each worker: `sudo k0s install worker --token-file <(echo "<TOKEN>") && sudo k0s start`.
+7. Validate: `sudo k0s kubectl get nodes`.
 
-Nada das flags extras do kubelet é necessário.
+None of the extra kubelet flags is needed.
 
-## Validação (executada nesta POC)
+## Validation (executed in this PoC)
 
 ```
 $ make up && make test
@@ -211,7 +184,7 @@ attempt 1 -> HTTP 200
 cluster OK
 ```
 
-E o conteúdo servido vem do disco do worker-1:
+And the content served comes from worker-1's disk:
 
 ```
 $ docker exec k0s-worker-1 cat /mnt/data/demo/index.html
@@ -220,11 +193,6 @@ hello from k0s on worker-1 PV
 
 ## Troubleshooting
 
-- `kubectl get pods -n kube-system` mostrando `CrashLoopBackOff` no
-  coredns → é o loop de DNS. Confirme que o kubelet está com
-  `--resolv-conf=/etc/resolv.conf.k0s` (veja `ps -ef | grep kubelet`
-  dentro do worker).
-- Workers `NotReady` por muito tempo → `docker logs k0s-worker-1` e
-  procurar por "cgroup" ou "cni". kube-router baixa a imagem na primeira
-  vez; pode levar alguns minutos.
-- Token expirado → recriar: `docker exec k0s-controller k0s token create --role=worker > /tmp/t && docker cp /tmp/t k0s-worker-1:/shared/worker.token`.
+- `kubectl get pods -n kube-system` showing `CrashLoopBackOff` on coredns → it's the DNS loop. Confirm kubelet is using `--resolv-conf=/etc/resolv.conf.k0s` (check `ps -ef | grep kubelet` inside the worker).
+- Workers `NotReady` for too long → `docker logs k0s-worker-1` and look for "cgroup" or "cni". kube-router pulls its image on first run; may take a few minutes.
+- Expired token → recreate: `docker exec k0s-controller k0s token create --role=worker > /tmp/t && docker cp /tmp/t k0s-worker-1:/shared/worker.token`.

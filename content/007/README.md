@@ -1,3 +1,9 @@
+---
+title: Processing observability data at scale with Apache Flink
+tags: [data-engineering, flink, observability, opentelemetry, kafka, prometheus]
+status: stable
+---
+
 # Processing observability data at scale with Apache Flink
 
 > **Author:** Vinícius Gomes Batista (*apolzek*)

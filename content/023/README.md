@@ -1,3 +1,9 @@
+---
+title: eBPF hands-on lab with bpftrace in Docker
+tags: [ebpf, bpftrace, linux, observability, docker-compose]
+status: stable
+---
+
 ## eBPF hands-on lab with bpftrace in Docker
 
 ### Objectives

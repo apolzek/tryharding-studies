@@ -1,3 +1,9 @@
+---
+title: Alerting with Prometheus, Alertmanager, Karma, and a Flask Application
+tags: [observability, prometheus, alertmanager, karma, python, docker-compose]
+status: stable
+---
+
 ## Alerting with Prometheus, Alertmanager, Karma, and a Flask Application
 
 ### Objectives

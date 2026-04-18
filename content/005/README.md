@@ -1,3 +1,9 @@
+---
+title: Basic log segregation with OpenTelemetry using routing connector
+tags: [observability, opentelemetry, logs, routing-connector]
+status: stable
+---
+
 ## Basic log segregation with OpenTelemetry using routing connector
 
 ### Objectives

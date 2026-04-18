@@ -1,3 +1,9 @@
+---
+title: OpenTelemetry Signal Routing with Envoy Proxy
+tags: [observability, opentelemetry, envoy, prometheus, grafana]
+status: stable
+---
+
 ## OpenTelemetry Signal Routing with Envoy Proxy
 
 ### Objectives

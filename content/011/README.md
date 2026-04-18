@@ -1,4 +1,8 @@
-
+---
+title: Network Connectivity Monitoring with network_exporter on Kubernetes
+tags: [observability, kubernetes, networking, prometheus, network-exporter, kind]
+status: stable
+---
 
 ## Network Connectivity Monitoring with network_exporter on Kubernetes
 

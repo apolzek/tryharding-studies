@@ -1,3 +1,9 @@
+---
+title: GPU-accelerated face recognition + open-vocabulary object detection from a webcam
+tags: [ai-ml, gpu, python, insightface, computer-vision]
+status: stable
+---
+
 ## GPU-accelerated face recognition + open-vocabulary object detection from a webcam
 
 ### Objectives

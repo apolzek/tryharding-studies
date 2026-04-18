@@ -1,3 +1,9 @@
+---
+title: How to monitor PostgreSQL running in container
+tags: [observability, databases, postgres, prometheus, grafana, docker-compose]
+status: stable
+---
+
 ## How to monitor PostgreSQL running in container
 
 ### Objectives

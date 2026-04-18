@@ -1,3 +1,9 @@
+---
+title: GitHub repository inspection bot with scheduled metadata snapshots
+tags: [automation, python, github-api, telegram-bot, sqlite]
+status: stable
+---
+
 ## GitHub repository inspection bot with scheduled metadata snapshots
 
 ### Objectives

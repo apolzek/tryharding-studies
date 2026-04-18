@@ -1,3 +1,9 @@
+---
+title: Collecting Docker Logs with Fluent Bit and Loki
+tags: [observability, logs, fluentbit, loki, grafana, docker-compose]
+status: stable
+---
+
 ## Collecting Docker Logs with Fluent Bit and Loki
 
 ### Objectives

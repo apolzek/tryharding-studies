@@ -1,3 +1,9 @@
+---
+title: Multi-cluster Istio mesh on Kind with Grafana observability
+tags: [kubernetes, istio, service-mesh, observability, grafana, kind]
+status: stable
+---
+
 ## Multi-cluster Istio mesh on Kind with Grafana observability
 
 ### Objectives

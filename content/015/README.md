@@ -1,3 +1,9 @@
+---
+title: Distributed Observability Pipeline with OpenTelemetry and Kafka
+tags: [observability, opentelemetry, kafka, data-engineering, prometheus, grafana]
+status: stable
+---
+
 ## Distributed Observability Pipeline with OpenTelemetry and Kafka
 
 ### Objectives
