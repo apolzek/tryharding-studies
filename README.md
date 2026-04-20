@@ -91,7 +91,5 @@ Every PoC carries YAML frontmatter (`title`, `tags`, `status`). This root index 
 - <a href="content/001">001</a> Exploring alternatives for load balancing and reverse proxy  
   `networking` `reverse-proxy` `load-balancer` `caddy` `envoy` `haproxy` `nginx` `traefik` `docker-compose`
 
----
-
 <!-- Regenerate with: `python3 scripts/gen_index.py` -->
 <!-- find . -type f -size +10M | grep -v ".git" | sed 's|^\./||' >> .gitignore -->
