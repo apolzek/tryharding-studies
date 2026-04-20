@@ -81,16 +81,16 @@ def render(entries: list[tuple[str, dict]]) -> str:
         "following the template in `content/README.template`:"
     )
     lines.append("")
-    lines.append("- **Objectives** — what the PoC tries to demonstrate")
-    lines.append("- **Prerequisites** — what needs to be installed")
-    lines.append("- **Reproducing** — exact commands to run the PoC")
-    lines.append("- **Results** — what you learn / what's observable")
-    lines.append("- **References** — useful links")
+    lines.append("- **Objectives**: what the PoC tries to demonstrate")
+    lines.append("- **Prerequisites**: what needs to be installed")
+    lines.append("- **Reproducing**: exact commands to run the PoC")
+    lines.append("- **Results**: what you learn / what's observable")
+    lines.append("- **References**: useful links")
     lines.append("")
     lines.append(
         "Every PoC carries YAML frontmatter (`title`, `tags`, `status`). "
-        "This root index is generated from that metadata by `scripts/gen_index.py` — "
-        "do not hand-edit."
+        "This root index is generated from that metadata by `scripts/gen_index.py`. "
+        "Do not hand-edit."
     )
     lines.append("")
     lines.append("## Index")
@@ -113,17 +113,6 @@ def render(entries: list[tuple[str, dict]]) -> str:
                 lines.append(f"  {tags_str}")
         else:
             lines.append(f"- {key} _missing_")
-
-    lines.append("")
-    lines.append("## Tags")
-    lines.append("")
-    tag_to_pocs: dict[str, list[str]] = {}
-    for num, fm in entries:
-        for t in (fm.get("tags") or []):
-            tag_to_pocs.setdefault(t, []).append(num)
-    for tag in sorted(tag_to_pocs):
-        pocs = ", ".join(f'<a href="content/{n}">{n}</a>' for n in tag_to_pocs[tag])
-        lines.append(f"- **`{tag}`** — {pocs}")
 
     lines.append("")
     lines.append("---")
