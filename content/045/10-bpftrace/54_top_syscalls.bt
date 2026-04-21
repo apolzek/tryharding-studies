@@ -1,0 +1,10 @@
+// 54 — Top syscalls no sistema (5s).
+// Run: sudo bpftrace 54_top_syscalls.bt
+// Test: sudo make test-54
+tracepoint:raw_syscalls:sys_enter {
+    @[comm] = count();
+}
+interval:s:5 {
+    print(@, 15);
+    clear(@);
+}

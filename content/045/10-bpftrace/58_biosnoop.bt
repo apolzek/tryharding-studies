@@ -1,0 +1,10 @@
+// 58 — biosnoop: cada I/O de bloco com latência.
+// Run: sudo bpftrace 58_biosnoop.bt
+// Test: sudo make test-58
+tracepoint:block:block_rq_issue    { @start[args->dev, args->sector] = nsecs; }
+tracepoint:block:block_rq_complete /@start[args->dev, args->sector]/ {
+    $dt = (nsecs - @start[args->dev, args->sector]) / 1000;
+    printf("%-16s %-6d %-8s %8d us\n", comm, pid,
+        str(args->rwbs), $dt);
+    delete(@start[args->dev, args->sector]);
+}

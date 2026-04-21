@@ -1,0 +1,6 @@
+// 56 — execsnoop minimalista.
+// Run: sudo bpftrace 56_execsnoop.bt
+// Test: sudo make test-56
+tracepoint:syscalls:sys_enter_execve {
+    printf("%-6d %-16s %s\n", pid, comm, str(args->filename));
+}

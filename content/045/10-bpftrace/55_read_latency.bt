@@ -1,0 +1,9 @@
+// 55 — Histograma de latência de vfs_read por processo.
+// Run: sudo bpftrace 55_read_latency.bt
+// Test: sudo make test-55
+kprobe:vfs_read  { @start[tid] = nsecs; }
+kretprobe:vfs_read /@start[tid]/ {
+    @ns[comm] = hist(nsecs - @start[tid]);
+    delete(@start[tid]);
+}
+END { clear(@start); }

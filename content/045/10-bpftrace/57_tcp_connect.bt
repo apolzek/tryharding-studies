@@ -1,0 +1,12 @@
+// 57 — TCP connect IPv4 em uma linha.
+// Run: sudo bpftrace 57_tcp_connect.bt
+// Test: sudo make test-57
+#include <net/sock.h>
+kprobe:tcp_v4_connect {
+    $sk = (struct sock *)arg0;
+    printf("%-6d %-16s -> %s:%d\n",
+        pid, comm,
+        ntop(AF_INET, $sk->__sk_common.skc_daddr),
+        (uint16)(($sk->__sk_common.skc_dport >> 8) |
+                 (($sk->__sk_common.skc_dport & 0xff) << 8)));
+}

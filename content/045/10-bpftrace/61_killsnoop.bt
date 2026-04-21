@@ -1,0 +1,6 @@
+// 61 — Snoop de kill(2).
+// Run: sudo bpftrace 61_killsnoop.bt
+// Test: sudo make test-61
+tracepoint:syscalls:sys_enter_kill {
+    printf("%-6d %-16s -> pid=%d sig=%d\n", pid, comm, args->pid, args->sig);
+}

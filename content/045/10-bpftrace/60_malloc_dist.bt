@@ -1,0 +1,7 @@
+// 60 — Distribuição de tamanhos de malloc() por processo
+// (uprobe em libc.so.6:malloc).
+// Run: sudo bpftrace 60_malloc_dist.bt
+// Test: sudo make test-60
+uprobe:libc:malloc {
+    @size[comm] = hist(arg0);
+}

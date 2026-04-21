@@ -1,0 +1,7 @@
+// 59 — Page faults por processo.
+// Run: sudo bpftrace 59_page_faults.bt
+// Test: sudo make test-59
+software:page-faults:1 {
+    @[comm] = count();
+}
+interval:s:3 { print(@, 10); clear(@); }
