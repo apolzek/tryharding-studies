@@ -1,0 +1,15 @@
+services:
+  fluentd:
+    image: fluent/fluentd:v1.17-debian-1
+    container_name: cncf-fluentd
+    user: root
+    volumes:
+      - ./conf:/fluentd/etc
+      - fluentd-logs:/fluentd/log
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+      - "9880:9880"
+
+volumes:
+  fluentd-logs:

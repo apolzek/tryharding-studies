@@ -1,0 +1,32 @@
+services:
+  nats1:
+    image: nats:2.10.22-alpine
+    container_name: cncf-nats1
+    command: ["--name=nats1", "-c", "/etc/nats/nats-server.conf"]
+    volumes:
+      - ./nats-server.conf:/etc/nats/nats-server.conf:ro
+      - nats1-data:/data
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+
+  nats2:
+    image: nats:2.10.22-alpine
+    container_name: cncf-nats2
+    command: ["--name=nats2", "-c", "/etc/nats/nats-server.conf"]
+    volumes:
+      - ./nats-server.conf:/etc/nats/nats-server.conf:ro
+      - nats2-data:/data
+
+  nats3:
+    image: nats:2.10.22-alpine
+    container_name: cncf-nats3
+    command: ["--name=nats3", "-c", "/etc/nats/nats-server.conf"]
+    volumes:
+      - ./nats-server.conf:/etc/nats/nats-server.conf:ro
+      - nats3-data:/data
+
+volumes:
+  nats1-data:
+  nats2-data:
+  nats3-data:

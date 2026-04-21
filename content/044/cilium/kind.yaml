@@ -1,0 +1,9 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: cilium-poc
+networking:
+  disableDefaultCNI: true       # remove kindnet → vamos usar Cilium
+  kubeProxyMode: none           # Cilium substitui kube-proxy via eBPF
+nodes:
+  - role: control-plane
+  - role: worker

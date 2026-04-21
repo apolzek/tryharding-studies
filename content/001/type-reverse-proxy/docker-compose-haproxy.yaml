@@ -10,7 +10,7 @@ services:
     ports:
       - "80:80"
       - "8404:8404"
-  
+
   front-a:
     image:  traefik/whoami
 

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://flagd.dev/schema/v0/flags.json",
+  "flags": {
+    "new-checkout": {
+      "state": "ENABLED",
+      "variants": {
+        "on": true,
+        "off": false
+      },
+      "defaultVariant": "off",
+      "targeting": {
+        "if": [
+          { "in": ["$.context.email", ["beta@company.com", "qa@company.com"]] },
+          "on",
+          "off"
+        ]
+      }
+    },
+    "discount-percent": {
+      "state": "ENABLED",
+      "variants": {
+        "none":    0,
+        "small":  10,
+        "big":    25
+      },
+      "defaultVariant": "none",
+      "targeting": {
+        "fractionalEvaluation": [
+          "$.context.userId",
+          ["small", 50],
+          ["big",   10],
+          ["none",  40]
+        ]
+      }
+    }
+  }
+}

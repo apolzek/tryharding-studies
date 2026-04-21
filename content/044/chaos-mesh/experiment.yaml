@@ -1,0 +1,33 @@
+# PodChaos: mata 1 pod aleatório do deploy victim
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: kill-random-pod
+  namespace: default
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces: [default]
+    labelSelectors:
+      app: victim
+  duration: "30s"
+---
+# Schedule: repete o experimento a cada minuto
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Schedule
+metadata:
+  name: kill-every-minute
+  namespace: default
+spec:
+  schedule: "@every 1m"
+  historyLimit: 3
+  concurrencyPolicy: Forbid
+  type: PodChaos
+  podChaos:
+    action: pod-kill
+    mode: one
+    selector:
+      namespaces: [default]
+      labelSelectors:
+        app: victim

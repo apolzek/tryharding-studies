@@ -1,0 +1,23 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: rook-poc
+nodes:
+  - role: control-plane
+  - role: worker
+    extraMounts:
+      - hostPath: /dev
+        containerPath: /dev
+      - hostPath: /sys
+        containerPath: /sys
+  - role: worker
+    extraMounts:
+      - hostPath: /dev
+        containerPath: /dev
+      - hostPath: /sys
+        containerPath: /sys
+  - role: worker
+    extraMounts:
+      - hostPath: /dev
+        containerPath: /dev
+      - hostPath: /sys
+        containerPath: /sys

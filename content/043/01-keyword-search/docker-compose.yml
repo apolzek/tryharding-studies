@@ -1,0 +1,12 @@
+services:
+  backend:
+    build: ./backend
+    container_name: kw-backend
+    ports:
+      - "18001:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

@@ -39,7 +39,7 @@ function extractTraceContext(headers) {
 
   try {
     const extractedContext = propagation.extract(context.active(), carrier);
-    
+
     // Verificar se a extração funcionou
     const span = trace.getSpan(extractedContext);
     if (span) {

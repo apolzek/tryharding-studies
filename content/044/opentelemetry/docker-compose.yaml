@@ -1,0 +1,29 @@
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.109.0
+    container_name: cncf-otelcol
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8889:8889"
+    depends_on: [jaeger]
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    container_name: cncf-otel-jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+
+  hotrod:
+    image: jaegertracing/example-hotrod:1.62.0
+    container_name: cncf-otel-hotrod
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    ports:
+      - "8080:8080"
+    depends_on: [otel-collector]

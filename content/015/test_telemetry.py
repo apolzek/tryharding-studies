@@ -74,4 +74,4 @@ if __name__ == "__main__":
 
     print("Test completed!")
     print("\nYou can now check Prometheus at http://localhost:9090")
-    print("Query:   ")                                                                   
+    print("Query:   ")

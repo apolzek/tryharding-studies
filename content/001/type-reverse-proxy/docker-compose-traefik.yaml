@@ -14,7 +14,7 @@ services:
       - "8080:8080" # The Web UI (enabled by --api.insecure=true)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-  
+
   front-a:
     image: traefik/whoami
     ports:

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>05 — RAG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #0f1115;
+        --panel: #161923;
+        --accent: #f472b6;
+        --muted: #8a93a6;
+        --text: #e8ebf2;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      header { padding: 24px 32px; border-bottom: 1px solid #242938; }
+      header h1 { margin: 0; font-size: 18px; display: inline; }
+      header .tag {
+        display: inline-block;
+        margin-right: 8px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: #1f2533;
+        color: var(--accent);
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+      main { max-width: 920px; margin: 24px auto; padding: 0 24px; }
+      .row { display: flex; gap: 8px; align-items: center; }
+      input[type="text"] {
+        flex: 1;
+        padding: 12px 14px;
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid #2a3142;
+        border-radius: 8px;
+        font-size: 15px;
+      }
+      input[type="text"]:focus { outline: none; border-color: var(--accent); }
+      button {
+        padding: 12px 18px;
+        background: var(--accent);
+        color: #0b0d12;
+        border: 0;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .meta { color: var(--muted); font-size: 13px; margin: 12px 4px; font-family: ui-monospace, monospace; }
+      .answer {
+        background: var(--panel);
+        border-left: 3px solid var(--accent);
+        padding: 16px 18px;
+        border-radius: 8px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        margin-top: 14px;
+      }
+      .sources { margin-top: 20px; }
+      .sources h2 {
+        font-size: 12px;
+        color: var(--muted);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin: 0 0 8px;
+      }
+      .src {
+        background: var(--panel);
+        border: 1px solid #242938;
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+      .src .n {
+        display: inline-block;
+        min-width: 22px;
+        padding: 1px 6px;
+        margin-right: 8px;
+        text-align: center;
+        background: #2b1f34;
+        color: var(--accent);
+        border-radius: 4px;
+        font-family: ui-monospace, monospace;
+        font-weight: 700;
+        font-size: 11px;
+      }
+      .src .title { font-weight: 600; }
+      .src .score { float: right; color: var(--muted); font-family: ui-monospace, monospace; font-size: 11px; }
+      .src p { margin: 4px 0 0 30px; color: #c6ccd8; font-size: 12px; line-height: 1.45; }
+      .suggestions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+      .suggestions span {
+        padding: 4px 10px;
+        background: #1f2533;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--muted);
+      }
+      .spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--muted);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+        margin-right: 6px;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="tag">05 / 05</span>
+      <h1>RAG · hybrid → rerank → LLM</h1>
+    </header>
+    <main>
+      <form id="form" class="row">
+        <input id="q" type="text" placeholder="ex: qual banco devo usar para detectar fraude em redes de relacionamento?" autocomplete="off" />
+        <button type="submit">Perguntar</button>
+      </form>
+      <div class="suggestions">
+        <span>qual banco devo usar para detectar fraude em redes de relacionamento?</span>
+        <span>preciso de cache distribuído com pub/sub — qual ferramenta serve?</span>
+        <span>quais ferramentas do compose eu uso para orquestrar containers em produção?</span>
+        <span>como faço observabilidade de métricas em microsserviços?</span>
+      </div>
+      <div id="meta" class="meta"></div>
+      <div id="answer" class="answer" style="display:none"></div>
+      <div id="sources" class="sources"></div>
+    </main>
+    <script>
+      const form = document.getElementById("form");
+      const qInput = document.getElementById("q");
+      const meta = document.getElementById("meta");
+      const answerDiv = document.getElementById("answer");
+      const sourcesDiv = document.getElementById("sources");
+      document.querySelectorAll(".suggestions span").forEach((s) => {
+        s.addEventListener("click", () => { qInput.value = s.textContent; form.requestSubmit(); });
+      });
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const q = qInput.value.trim();
+        if (!q) return;
+        meta.innerHTML = '<span class="spinner"></span>retrieve → rerank → LLM…';
+        answerDiv.style.display = "none";
+        sourcesDiv.innerHTML = "";
+        try {
+          const res = await fetch(`/ask?q=${encodeURIComponent(q)}&top_k=4`);
+          if (!res.ok) throw new Error(await res.text());
+          const data = await res.json();
+          const total = data.ms_retrieve + data.ms_rerank + data.ms_llm;
+          meta.textContent = `retrieve=${data.ms_retrieve}ms · rerank=${data.ms_rerank}ms · llm=${data.ms_llm}ms · total=${total.toFixed(0)}ms`;
+          answerDiv.textContent = data.answer;
+          answerDiv.style.display = "block";
+          sourcesDiv.innerHTML = `<h2>Fontes (${data.sources.length})</h2>` + data.sources.map((s, i) =>
+            `<div class="src">
+               <span class="score">rerank ${s.rerank_score.toFixed(3)}</span>
+               <span class="n">${i + 1}</span><span class="title">${s.title}</span>
+               <p>${s.content}</p>
+             </div>`
+          ).join("");
+        } catch (err) {
+          meta.textContent = "Erro: " + err.message;
+        }
+      });
+    </script>
+  </body>
+</html>

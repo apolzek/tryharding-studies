@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: web }
+  template:
+    metadata:
+      labels: { app: web }
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27
+          ports: [{ containerPort: 80 }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector: { app: web }
+  ports: [{ port: 80, targetPort: 80 }]
+---
+# HTTPProxy: roteamento L7 mais rico que Ingress (weights, retries, timeouts, virtualhost TLS)
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: web
+spec:
+  virtualhost:
+    fqdn: web.local
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: web
+          port: 80
+      timeoutPolicy:
+        response: 5s
+      retryPolicy:
+        count: 2
+        perTryTimeout: 2s
+        retryOn:
+          - 5xx
+          - reset

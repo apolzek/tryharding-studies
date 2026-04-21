@@ -9,7 +9,7 @@ alerting:
     - static_configs:
         - targets:
           - alertmanager:9093  # O endereço do seu Alertmanager
-          
+
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:

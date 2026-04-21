@@ -72,4 +72,3 @@ To add or change monitored targets, edit the `network_exporter.yml` section insi
 ```
 https://github.com/syepes/network_exporter
 ```
-

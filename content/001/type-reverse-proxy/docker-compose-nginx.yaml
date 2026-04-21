@@ -11,7 +11,7 @@ services:
     volumes:
       - ../nginx/nginx-reverse-proxy.conf:/etc/nginx/nginx.conf
       # - ./certs:/etc/nginx/certs
-  
+
   front-a:
     image:  traefik/whoami
 

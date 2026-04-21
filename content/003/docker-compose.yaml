@@ -18,7 +18,7 @@ services:
     networks:
       - monitoring
     cpus: 0.5
-    mem_limit: 1000m 
+    mem_limit: 1000m
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -58,7 +58,7 @@ services:
       - "9100:9100"
     restart: unless-stopped
     volumes:
-      - '/:/host:ro,rslave' 
+      - '/:/host:ro,rslave'
     networks:
       - monitoring
 
@@ -104,7 +104,7 @@ services:
       - "3100:3100"
     networks:
       - monitoring
-      
+
   promtail:
     image: grafana/promtail:latest
     container_name: promtail

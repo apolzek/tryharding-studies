@@ -1,0 +1,177 @@
+[
+  {
+    "id": 1,
+    "title": "PostgreSQL",
+    "content": "PostgreSQL é um banco de dados relacional open source conhecido por suporte robusto a ACID, transações complexas, JSONB, CTEs recursivas e extensões como PostGIS e pgvector. É amplamente usado em sistemas financeiros e aplicações que exigem consistência forte."
+  },
+  {
+    "id": 2,
+    "title": "MongoDB",
+    "content": "MongoDB é um banco de dados NoSQL orientado a documentos BSON. Oferece schema flexível, replicação automática via replica sets e sharding horizontal. É popular em aplicações com dados semiestruturados e requisitos de evolução rápida de modelo."
+  },
+  {
+    "id": 3,
+    "title": "Redis",
+    "content": "Redis é um armazenamento chave-valor em memória com estruturas avançadas como listas, sets, sorted sets, streams e hyperloglog. É comumente usado como cache, broker de mensagens pub/sub e para rate limiting distribuído."
+  },
+  {
+    "id": 4,
+    "title": "Elasticsearch",
+    "content": "Elasticsearch é um motor de busca distribuído baseado em Lucene. Indexa documentos em formato JSON e oferece busca full-text com BM25, agregações analíticas e buscas geoespaciais. É núcleo da stack ELK para observabilidade."
+  },
+  {
+    "id": 5,
+    "title": "Apache Cassandra",
+    "content": "Cassandra é um banco NoSQL wide-column distribuído projetado para alta escrita e disponibilidade multi-região. Usa modelo eventualmente consistente, hashing consistente e é indicado para telemetria, séries temporais e cargas write-heavy."
+  },
+  {
+    "id": 6,
+    "title": "MySQL",
+    "content": "MySQL é um banco de dados relacional open source muito usado em aplicações web. Oferece engines como InnoDB com suporte a transações, replicação master-slave e é a base de stacks como LAMP. Comprado pela Oracle em 2010."
+  },
+  {
+    "id": 7,
+    "title": "SQLite",
+    "content": "SQLite é um banco relacional embarcado sem servidor, armazenado em um único arquivo. É ideal para aplicações mobile, dispositivos IoT, testes e prototipagem. Suporta a maior parte do SQL padrão e é o banco embutido mais implantado do mundo."
+  },
+  {
+    "id": 8,
+    "title": "Neo4j",
+    "content": "Neo4j é um banco de dados de grafos nativo, otimizado para percorrer relacionamentos. Usa a linguagem de consulta Cypher e é aplicado em detecção de fraude, recomendações baseadas em conexões e análise de redes sociais."
+  },
+  {
+    "id": 9,
+    "title": "Amazon DynamoDB",
+    "content": "DynamoDB é um banco NoSQL gerenciado da AWS, totalmente serverless, com latência em milissegundos de dígito único. Suporta chave primária simples ou composta, índices secundários globais e streams para eventos de mudança."
+  },
+  {
+    "id": 10,
+    "title": "InfluxDB",
+    "content": "InfluxDB é um banco de dados de séries temporais especializado em métricas, eventos e telemetria de IoT. Oferece compressão eficiente, retenção por política e a linguagem Flux para consultas analíticas sobre o tempo."
+  },
+  {
+    "id": 11,
+    "title": "Python",
+    "content": "Python é uma linguagem interpretada de alto nível, muito popular em ciência de dados, machine learning, scripting e desenvolvimento web. Possui tipagem dinâmica, GIL na CPython e ecossistema rico com NumPy, PyTorch e FastAPI."
+  },
+  {
+    "id": 12,
+    "title": "Go",
+    "content": "Go é uma linguagem compilada criada pelo Google com foco em concorrência via goroutines e channels. É usada em ferramentas de infraestrutura como Docker, Kubernetes e Terraform, oferecendo build estático e startup rápido."
+  },
+  {
+    "id": 13,
+    "title": "Rust",
+    "content": "Rust é uma linguagem de sistemas com garantias de segurança de memória em tempo de compilação via o borrow checker, sem garbage collector. É usada em componentes críticos de performance como navegadores, sistemas operacionais e bancos de dados."
+  },
+  {
+    "id": 14,
+    "title": "Java",
+    "content": "Java é uma linguagem orientada a objetos que roda sobre a JVM. Dominante em sistemas corporativos, backends de bancos e aplicações Android. Possui tipagem estática, garbage collection e enorme ecossistema com Spring e frameworks de integração."
+  },
+  {
+    "id": 15,
+    "title": "JavaScript",
+    "content": "JavaScript é a linguagem de scripting executada em navegadores e também no servidor via Node.js. É single-threaded baseada em event loop, e é a base de frameworks frontend como React, Vue e Svelte."
+  },
+  {
+    "id": 16,
+    "title": "TypeScript",
+    "content": "TypeScript é um superset tipado de JavaScript desenvolvido pela Microsoft. Adiciona tipos estáticos, interfaces e generics, compilando para JavaScript. Muito adotado em projetos de grande porte para reduzir erros em tempo de execução."
+  },
+  {
+    "id": 17,
+    "title": "C++",
+    "content": "C++ é uma linguagem compilada de propósito geral com controle manual de memória, templates e metaprogramação. Usada em motores de jogos, sistemas embarcados, trading de alta frequência e software que exige máxima performance."
+  },
+  {
+    "id": 18,
+    "title": "Ruby",
+    "content": "Ruby é uma linguagem dinâmica orientada a objetos com forte foco em produtividade do desenvolvedor. Popularizada pelo framework Ruby on Rails para desenvolvimento web ágil e convention over configuration."
+  },
+  {
+    "id": 19,
+    "title": "Kotlin",
+    "content": "Kotlin é uma linguagem moderna da JetBrains que roda na JVM, interoperável com Java. Tornou-se a linguagem oficial para desenvolvimento Android e também é usada em backends com frameworks como Ktor e Spring Boot."
+  },
+  {
+    "id": 20,
+    "title": "Swift",
+    "content": "Swift é a linguagem da Apple para desenvolvimento iOS, macOS, watchOS e tvOS. Moderna, tipada, com opcionais, generics e ARC para gerenciamento de memória. Substituiu gradualmente o Objective-C nos ecossistemas Apple."
+  },
+  {
+    "id": 21,
+    "title": "Docker",
+    "content": "Docker empacota aplicações em containers leves que compartilham o kernel do host via namespaces e cgroups. Permite distribuir imagens reprodutíveis e é a base para microserviços, CI/CD e ambientes de desenvolvimento isolados."
+  },
+  {
+    "id": 22,
+    "title": "Kubernetes",
+    "content": "Kubernetes é um orquestrador de containers open source que automatiza deploy, scaling e cura de aplicações. Organiza workloads em pods, replica via deployments e expõe serviços através de services e ingress controllers."
+  },
+  {
+    "id": 23,
+    "title": "Helm",
+    "content": "Helm é o gerenciador de pacotes para Kubernetes, permitindo empacotar aplicações em charts reutilizáveis. Usa templates com Go templating e valores configuráveis para instalar e versionar releases em clusters."
+  },
+  {
+    "id": 24,
+    "title": "Terraform",
+    "content": "Terraform é uma ferramenta de infraestrutura como código da HashiCorp. Usa a linguagem declarativa HCL para provisionar recursos em AWS, GCP, Azure e muitos outros provedores, mantendo estado em backends remotos."
+  },
+  {
+    "id": 25,
+    "title": "Ansible",
+    "content": "Ansible é uma ferramenta de automação agentless baseada em SSH. Usa playbooks YAML com tasks idempotentes para configurar servidores, realizar deploys e orquestrar operações em larga escala sem instalar agentes nos hosts."
+  },
+  {
+    "id": 26,
+    "title": "Jenkins",
+    "content": "Jenkins é um servidor open source de automação de CI/CD, extensível via plugins. Descreve pipelines em Jenkinsfile Groovy e é historicamente o padrão em integrações on-premise, apesar da crescente adoção de alternativas cloud-native."
+  },
+  {
+    "id": 27,
+    "title": "GitHub Actions",
+    "content": "GitHub Actions é a plataforma de CI/CD integrada ao GitHub. Descreve workflows em YAML disparados por eventos como push, pull request e schedule. Reutiliza ações de um marketplace amplo e executa em runners hospedados ou self-hosted."
+  },
+  {
+    "id": 28,
+    "title": "Prometheus",
+    "content": "Prometheus é um sistema de monitoramento pull-based com modelo de dados multidimensional de séries temporais. Coleta métricas via HTTP scrape, consulta com PromQL e é padrão de facto para observabilidade em ambientes cloud-native."
+  },
+  {
+    "id": 29,
+    "title": "Grafana",
+    "content": "Grafana é uma plataforma open source de visualização de métricas e logs. Integra com Prometheus, Loki, Elasticsearch, InfluxDB e muitos outros backends para compor dashboards interativos e configurar alertas."
+  },
+  {
+    "id": 30,
+    "title": "Nginx",
+    "content": "Nginx é um servidor web e reverse proxy de alta performance baseado em event-driven assíncrono. É usado como load balancer HTTP/TCP, terminador TLS, cache de conteúdo estático e front para aplicações web e APIs."
+  },
+  {
+    "id": 31,
+    "title": "RabbitMQ",
+    "content": "RabbitMQ é um broker de mensagens que implementa AMQP, com suporte a filas duráveis, exchanges, bindings e acknowledgements. É comum em integrações assíncronas, desacoplamento de serviços e processamento de tarefas em background."
+  },
+  {
+    "id": 32,
+    "title": "Apache Kafka",
+    "content": "Kafka é uma plataforma de streaming distribuída baseada em log imutável particionado. Oferece altíssimo throughput, retenção configurável e consumidores por grupo, sendo central em arquiteturas event-driven e pipelines de dados."
+  },
+  {
+    "id": 33,
+    "title": "FastAPI",
+    "content": "FastAPI é um framework web Python assíncrono baseado em Starlette e Pydantic. Gera documentação OpenAPI automaticamente, valida entradas via tipos e é popular em APIs de serviços de machine learning e microserviços."
+  },
+  {
+    "id": 34,
+    "title": "React",
+    "content": "React é uma biblioteca JavaScript para construção de interfaces de usuário baseada em componentes e virtual DOM. Desenvolvida pelo Meta, introduziu hooks para gerenciar estado e efeitos de forma declarativa em componentes funcionais."
+  },
+  {
+    "id": 35,
+    "title": "Qdrant",
+    "content": "Qdrant é um banco de dados vetorial open source escrito em Rust. Armazena embeddings de alta dimensão com filtros por payload, suporta HNSW para busca aproximada de vizinhos mais próximos e é usado em pipelines de RAG e busca semântica."
+  }
+]

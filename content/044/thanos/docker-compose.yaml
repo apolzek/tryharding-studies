@@ -1,0 +1,42 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: cncf-thanos-prom
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.min-block-duration=2h
+      - --storage.tsdb.max-block-duration=2h   # Obrigatório p/ Thanos sidecar shipping
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - prom-data:/prometheus
+    ports:
+      - "9090:9090"
+
+  thanos-sidecar:
+    image: quay.io/thanos/thanos:v0.36.1
+    container_name: cncf-thanos-sidecar
+    command:
+      - sidecar
+      - --tsdb.path=/prometheus
+      - --prometheus.url=http://prometheus:9090
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+    volumes:
+      - prom-data:/prometheus
+    depends_on: [prometheus]
+
+  thanos-query:
+    image: quay.io/thanos/thanos:v0.36.1
+    container_name: cncf-thanos-query
+    command:
+      - query
+      - --http-address=0.0.0.0:10902
+      - --endpoint=thanos-sidecar:10901
+    ports:
+      - "10902:10902"
+    depends_on: [thanos-sidecar]
+
+volumes:
+  prom-data:

@@ -1,0 +1,21 @@
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.32.1
+    container_name: cncf-envoy
+    command: ["-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+    ports:
+      - "8080:8080"
+      - "9901:9901"
+    depends_on:
+      - web
+      - api
+
+  web:
+    image: nginxdemos/hello:latest
+    container_name: cncf-envoy-web
+
+  api:
+    image: nginxdemos/hello:latest
+    container_name: cncf-envoy-api

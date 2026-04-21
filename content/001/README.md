@@ -28,7 +28,7 @@ On the other hand, a Load Balancer is designed to distribute incoming network tr
 - Round-robin (commonly supported)
 - Least connections
 - IP hash (session affinity)
-  
+
 
 ```mermaid
 graph TD
@@ -38,13 +38,13 @@ graph TD
     subgraph "Reverse Proxy"
         RP -->|/front-a| FrontA1[front-a]
         RP -->|/front-b| FrontB1[front-b]
-        
+
     end
 
     subgraph "Load Balancer"
         LB --> FrontA2[front-a]
         LB --> FrontB2[front-b]
-        
+
     end
 ```
 

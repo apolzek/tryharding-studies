@@ -41,8 +41,8 @@ psql postgres://user:password@localhost:5432/postgres -xc \
        name VARCHAR(100),
        age INT
    );
-   INSERT INTO test_schema.test_table (name, age) 
-   VALUES 
+   INSERT INTO test_schema.test_table (name, age)
+   VALUES
    ('João', 30),
    ('Maria', 25),
    ('Pedro', 35),
@@ -162,7 +162,7 @@ psql postgres://user:password@localhost:5432/postgres -xc \
    ('Marlene', 39),
    ('Douglas', 38),
    ('Mariana', 37);
-   
+
    SELECT * FROM test_schema.test_table;"
 ```
 
@@ -172,12 +172,12 @@ psql postgres://user:password@localhost:5432/postgres -xc \
   "SELECT schema_name
    FROM information_schema.schemata
    WHERE schema_name = 'test_schema';
-   
+
    SELECT table_name
    FROM information_schema.tables
    WHERE table_schema = 'test_schema'
      AND table_name = 'test_table';
-   
+
    SELECT * FROM test_schema.test_table;"
 ```
 

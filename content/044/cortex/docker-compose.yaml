@@ -1,0 +1,21 @@
+services:
+  cortex:
+    image: cortexproject/cortex:v1.18.1
+    container_name: cncf-cortex
+    command: ["-config.file=/etc/cortex.yaml"]
+    volumes:
+      - ./cortex.yaml:/etc/cortex.yaml:ro
+    ports:
+      - "9009:9009"
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: cncf-cortex-prom
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on: [cortex]

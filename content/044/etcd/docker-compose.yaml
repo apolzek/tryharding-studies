@@ -1,0 +1,46 @@
+# Cluster etcd de 3 nós — quorum 2, tolera 1 falha.
+x-common: &common
+  image: quay.io/coreos/etcd:v3.5.16
+  entrypoint: /usr/local/bin/etcd
+
+services:
+  etcd1:
+    <<: *common
+    container_name: cncf-etcd1
+    command:
+      - --name=etcd1
+      - --initial-advertise-peer-urls=http://etcd1:2380
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd1:2379
+      - --initial-cluster-token=etcd-poc
+      - --initial-cluster=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
+      - --initial-cluster-state=new
+    ports:
+      - "2379:2379"
+
+  etcd2:
+    <<: *common
+    container_name: cncf-etcd2
+    command:
+      - --name=etcd2
+      - --initial-advertise-peer-urls=http://etcd2:2380
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd2:2379
+      - --initial-cluster-token=etcd-poc
+      - --initial-cluster=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
+      - --initial-cluster-state=new
+
+  etcd3:
+    <<: *common
+    container_name: cncf-etcd3
+    command:
+      - --name=etcd3
+      - --initial-advertise-peer-urls=http://etcd3:2380
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd3:2379
+      - --initial-cluster-token=etcd-poc
+      - --initial-cluster=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
+      - --initial-cluster-state=new

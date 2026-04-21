@@ -1,0 +1,20 @@
+- rule: Read Sensitive File Untrusted
+  desc: Detecta leitura de /etc/shadow fora de processos trusted
+  condition: >
+    open_read and fd.name = /etc/shadow
+    and not proc.name in (sshd, passwd, chage, login, shadowconfig)
+  output: >
+    Sensitive file read (user=%user.name command=%proc.cmdline file=%fd.name)
+  priority: WARNING
+  tags: [filesystem, mitre_credential_access]
+
+- rule: Terminal Shell in Container
+  desc: Shell interativo aberto dentro de container (suspeito em workloads prod)
+  condition: >
+    spawned_process and container
+    and shell_procs and proc.tty != 0
+    and container.id != host
+  output: >
+    Shell spawned in container (user=%user.name container=%container.name cmdline=%proc.cmdline)
+  priority: NOTICE
+  tags: [container, shell, mitre_execution]

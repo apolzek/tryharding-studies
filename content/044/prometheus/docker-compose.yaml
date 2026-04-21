@@ -1,0 +1,30 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: cncf-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - node-exporter
+      - alertmanager
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: cncf-node-exporter
+    ports:
+      - "9100:9100"
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: cncf-alertmanager
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9093:9093"

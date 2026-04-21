@@ -53,7 +53,7 @@ services:
       - backend
     logging:
       driver: fluentd
-      
+
 networks:
   backend:
     driver: bridge

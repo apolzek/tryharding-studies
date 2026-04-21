@@ -13,7 +13,7 @@ send_traces() {
     TRACE_ID=$(uuidgen | tr -d '-' | cut -c1-32)
     SPAN_ID=$(uuidgen | tr -d '-' | cut -c1-16)
     TIMESTAMP=$(date +%s)000000000
-    
+
     curl -s -X POST ${ENVOY_URL}/v1/traces \
       -H "Content-Type: application/json" \
       -d "{
@@ -36,7 +36,7 @@ send_traces() {
           }]
         }]
       }"
-    
+
     if [ $? -eq 0 ]; then
         echo "✅ Trace enviado com sucesso!"
     else
@@ -49,7 +49,7 @@ send_traces() {
 send_metrics() {
     echo "📈 Enviando Metrics..."
     TIMESTAMP=$(date +%s)000000000
-    
+
     curl -s -X POST ${ENVOY_URL}/v1/metrics \
       -H "Content-Type: application/json" \
       -d "{
@@ -76,7 +76,7 @@ send_metrics() {
           }]
         }]
       }"
-    
+
     if [ $? -eq 0 ]; then
         echo "✅ Metric enviada com sucesso!"
     else
@@ -89,7 +89,7 @@ send_metrics() {
 send_logs() {
     echo "📝 Enviando Logs..."
     TIMESTAMP=$(date +%s)000000000
-    
+
     curl -s -X POST ${ENVOY_URL}/v1/logs \
       -H "Content-Type: application/json" \
       -d "{
@@ -110,7 +110,7 @@ send_logs() {
           }]
         }]
       }"
-    
+
     if [ $? -eq 0 ]; then
         echo "✅ Log enviado com sucesso!"
     else

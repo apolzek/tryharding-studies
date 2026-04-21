@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: insecure
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: insecure } }
+  template:
+    metadata: { labels: { app: insecure } }
+    spec:
+      hostNetwork: true            # bad
+      containers:
+        - name: c
+          image: nginx:latest      # bad (latest)
+          securityContext:
+            privileged: true       # bad
+            runAsUser: 0           # bad (root)
+          # sem resources.limits    # bad

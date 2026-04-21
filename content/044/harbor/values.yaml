@@ -1,0 +1,20 @@
+expose:
+  type: nodePort
+  tls:
+    enabled: false
+  nodePort:
+    name: harbor
+    ports:
+      http:
+        port: 80
+        nodePort: 30080
+externalURL: http://localhost:30080
+harborAdminPassword: "Harbor12345"
+persistence:
+  enabled: false
+trivy:
+  enabled: false
+notary:
+  enabled: false
+chartmuseum:
+  enabled: false

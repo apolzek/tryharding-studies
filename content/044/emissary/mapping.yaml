@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: hello } }
+  template:
+    metadata: { labels: { app: hello } }
+    spec:
+      containers:
+        - name: c
+          image: hashicorp/http-echo:1.0.0
+          args: ["-text=hello from emissary"]
+          ports: [{ containerPort: 5678 }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: hello }
+spec:
+  selector: { app: hello }
+  ports: [{ port: 80, targetPort: 5678 }]
+---
+# Mapping: CRD do Emissary que define roteamento
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: hello-mapping
+spec:
+  hostname: "*"
+  prefix: /hello/
+  service: hello:80
+  rewrite: /
+  timeout_ms: 5000
+  retry_policy:
+    retry_on: "5xx"
+    num_retries: 2

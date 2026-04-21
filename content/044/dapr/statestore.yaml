@@ -1,0 +1,13 @@
+# State store usando Redis — Dapr abstrai a API para a app
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+spec:
+  type: state.redis
+  version: v1
+  metadata:
+    - name: redisHost
+      value: redis-master:6379
+    - name: redisPassword
+      value: ""

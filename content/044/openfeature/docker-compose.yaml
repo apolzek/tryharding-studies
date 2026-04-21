@@ -1,0 +1,14 @@
+services:
+  flagd:
+    image: ghcr.io/open-feature/flagd:v0.11.4
+    container_name: cncf-flagd
+    command:
+      - start
+      - --uri=file:/etc/flagd/flags.json
+      - --port=8013
+      - --management-port=8014
+    volumes:
+      - ./flags.json:/etc/flagd/flags.json:ro
+    ports:
+      - "8013:8013"
+      - "8014:8014"

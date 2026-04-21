@@ -27,4 +27,3 @@ scrape_configs:
       - targets: ['kafka-exporter:9308']
         labels:
           service: 'kafka'
-

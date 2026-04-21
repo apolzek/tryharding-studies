@@ -77,9 +77,9 @@ data:
       - name: github
         host: https://github.com/syepes
         type: HTTPGet
-       
-          
-        
+
+
+
 ---
 apiVersion: v1
 kind: Service

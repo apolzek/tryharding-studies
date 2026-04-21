@@ -133,4 +133,3 @@ metadata:
     grafana_dashboard: '1'
   name: grafana-blackbox-dashboard
   namespace: monitoring
-

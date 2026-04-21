@@ -1,0 +1,44 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resources
+  annotations:
+    policies.kyverno.io/title: Require resource requests and limits
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: check-pod-resources
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: "Pods precisam ter resources.requests e resources.limits definidos"
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    memory: "?*"
+                    cpu: "?*"
+                  limits:
+                    memory: "?*"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: reject-latest
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: "Proibido usar image com tag :latest (ou sem tag)"
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"

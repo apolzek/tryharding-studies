@@ -1,0 +1,8 @@
+# grpcbin: servidor gRPC prebuilt com reflection ligado.
+# Para exercitar, use grpcurl via docker run --rm (exemplos no README).
+services:
+  grpcbin:
+    image: moul/grpcbin:latest
+    container_name: cncf-grpcbin
+    ports:
+      - "9000:9000"

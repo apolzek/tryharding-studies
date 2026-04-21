@@ -1,0 +1,10 @@
+# Backstage standalone (demo) — imagem oficial com SQLite + catálogo default
+services:
+  backstage:
+    image: ghcr.io/backstage/backstage:1.32.0
+    container_name: cncf-backstage
+    command: ["node", "packages/backend", "--config", "app-config.yaml"]
+    ports:
+      - "7007:7007"
+    environment:
+      - NODE_ENV=development

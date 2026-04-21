@@ -1,0 +1,26 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: demo-tls
+  namespace: default
+spec:
+  secretName: demo-tls-secret
+  duration: 24h
+  renewBefore: 8h
+  subject:
+    organizations:
+      - demo
+  commonName: demo.local
+  dnsNames:
+    - demo.local
+    - api.demo.local
+  issuerRef:
+    name: selfsigned
+    kind: ClusterIssuer

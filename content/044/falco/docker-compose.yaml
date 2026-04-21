@@ -1,0 +1,20 @@
+# Falco "userspace / modern ebpf" - privileged + mount do host
+# Em prod usa-se DaemonSet no k8s; este é um POC host-only.
+services:
+  falco:
+    image: falcosecurity/falco-no-driver:0.39.0
+    container_name: cncf-falco
+    privileged: true
+    pid: host
+    tty: true
+    command: ["falco",
+      "-c", "/etc/falco/falco.yaml",
+      "-o", "engine.kind=modern_ebpf",
+      "-r", "/etc/falco/falco_rules.yaml",
+      "-r", "/etc/falco/falco_rules.local.yaml"
+    ]
+    volumes:
+      - ./falco_rules.local.yaml:/etc/falco/falco_rules.local.yaml:ro
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - /proc:/host/proc:ro
+      - /etc:/host/etc:ro

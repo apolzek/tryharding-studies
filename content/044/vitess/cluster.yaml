@@ -1,0 +1,84 @@
+# VitessCluster mínima: 1 keyspace "commerce" com 1 shard, 1 tablet primary
+apiVersion: planetscale.com/v2
+kind: VitessCluster
+metadata:
+  name: example
+spec:
+  backup:
+    engine: xtrabackup
+    locations:
+      - volume:
+          emptyDir: {}
+  images:
+    vtctld: vitess/lite:v21.0.0
+    vtadmin: vitess/vtadmin:v21.0.0
+    vtgate: vitess/lite:v21.0.0
+    vttablet: vitess/lite:v21.0.0
+    vtbackup: vitess/lite:v21.0.0
+    vtorc: vitess/lite:v21.0.0
+    mysqld:
+      mysql80Compatible: vitess/lite:v21.0.0-mysql80
+    mysqldExporter: prom/mysqld-exporter:v0.15.1
+  cells:
+    - name: zone1
+      gateway:
+        authentication:
+          static:
+            secret:
+              name: example-cluster-config
+              key: users.json
+        replicas: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+  vitessDashboard:
+    cells: [zone1]
+    extraFlags:
+      security_policy: read-only
+    replicas: 1
+    resources:
+      limits:
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  keyspaces:
+    - name: commerce
+      durabilityPolicy: none
+      turndownPolicy: Immediate
+      partitionings:
+        - equal:
+            parts: 1
+            shardTemplate:
+              databaseInitScriptSecret:
+                name: example-cluster-config
+                key: init_db.sql
+              tabletPools:
+                - cell: zone1
+                  type: replica
+                  replicas: 1
+                  vttablet:
+                    extraFlags:
+                      db_charset: utf8mb4
+                    resources:
+                      limits:
+                        memory: 256Mi
+                      requests:
+                        cpu: 100m
+                        memory: 128Mi
+                  mysqld:
+                    resources:
+                      limits:
+                        memory: 512Mi
+                      requests:
+                        cpu: 100m
+                        memory: 256Mi
+                    configOverrides: |
+                      [mysqld]
+                      max_connections=50
+                  dataVolumeClaimTemplate:
+                    accessModes: [ReadWriteOnce]
+                    resources:
+                      requests:
+                        storage: 1Gi

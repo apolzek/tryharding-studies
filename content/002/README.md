@@ -47,7 +47,7 @@ graph TD
 - java
 - maven
 - mise(*optional*)
-  
+
 ### Reproducing
 
 Start all services (including Java applications) with Docker Compose
@@ -89,11 +89,11 @@ cd apps/post-service && mvn spring-boot:run
 
 ### Results
 
-**Grafana**: http://localhost:3000 
+**Grafana**: http://localhost:3000
 
 The lab successfully demonstrated the integration of observability tools, with metrics, logs, and traces working seamlessly together. OpenTelemetry Collector proved to be the key component, acting as a flexible bridge between systems and enabling smooth data flow across the entire stack.
 
-![image](./.image/traces.png) 
+![image](./.image/traces.png)
 ![image](./.image/micrometer.png)
 ![image](./.image/metrics.png)
 ![image](./.image/logs.png)

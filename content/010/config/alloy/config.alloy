@@ -4,7 +4,7 @@ faro.receiver "frontend_telemetry" {
   server {
     listen_address = "0.0.0.0"
     listen_port    = 12347
-    
+
     cors_allowed_origins = ["*"]
   }
 
@@ -27,7 +27,7 @@ otelcol.receiver.otlp "backend_traces" {
   grpc {
     endpoint = "0.0.0.0:4317"
   }
-  
+
   http {
     endpoint = "0.0.0.0:4318"
   }
@@ -42,7 +42,7 @@ otelcol.processor.batch "faro_traces" {
   output {
     traces = [otelcol.processor.attributes.add_service_info.input]
   }
-  
+
   send_batch_size = 100
   timeout = "1s"
 }
@@ -51,7 +51,7 @@ otelcol.processor.batch "backend_traces" {
   output {
     traces = [otelcol.processor.attributes.add_service_info.input]
   }
-  
+
   send_batch_size = 100
   timeout = "1s"
 }
@@ -63,9 +63,9 @@ otelcol.processor.attributes "add_service_info" {
     value  = "local"
     action = "upsert"
   }
-  
+
   action {
-    key    = "service.namespace"  
+    key    = "service.namespace"
     value  = "gerenciador-itens"
     action = "upsert"
   }
@@ -82,7 +82,7 @@ otelcol.exporter.otlp "tempo" {
     tls {
       insecure = true
     }
-    
+
     headers = {
       "X-Custom-Header" = "unified-traces",
     }
@@ -93,15 +93,15 @@ otelcol.exporter.otlp "tempo" {
 loki.write "default" {
   endpoint {
     url = "http://loki:3100/loki/api/v1/push"
-    
+
     headers = {
       "X-Custom-Header" = "faro-logs",
     }
   }
-  
+
   external_labels = {
     cluster     = "local-dev",
-    environment = "development", 
+    environment = "development",
     source      = "faro",
     Environment = "local",
     Application = "gerenciador-itens",
@@ -129,15 +129,15 @@ prometheus.remote_write "metrics_write" {
 	endpoint {
 		name = "prometheus-local"
 		url  = "http://prometheus:9090/api/v1/write"
-		
+
 		headers = {
 			"X-Custom-Header" = "faro-metrics",
 		}
-		
+
 		queue_config {}
 		metadata_config {}
 	}
-	
+
 	external_labels = {
 		cluster     = "local-dev",
 		environment = "development",

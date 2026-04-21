@@ -1,0 +1,7 @@
+$TTL 60
+@    IN  SOA   ns.internal.lab. admin.internal.lab. (2026042001 7200 3600 1209600 60)
+     IN  NS    ns.internal.lab.
+ns   IN  A     127.0.0.1
+api  IN  A     10.0.0.10
+db   IN  A     10.0.0.20
+cache IN CNAME db

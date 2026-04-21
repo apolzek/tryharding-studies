@@ -38,5 +38,5 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [clickhouse]
-  
+
   extensions: []

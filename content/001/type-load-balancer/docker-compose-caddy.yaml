@@ -15,4 +15,3 @@ services:
 
   front-b:
     image:  traefik/whoami
-

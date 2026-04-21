@@ -1,0 +1,8 @@
+# Kubescape CLI em container - faz scan de YAML em modo local (sem cluster)
+services:
+  kubescape:
+    image: quay.io/kubescape/kubescape:v3.0.23
+    container_name: cncf-kubescape
+    command: ["scan", "framework", "nsa", "/manifests/bad-deploy.yaml", "--format=pretty-printer"]
+    volumes:
+      - ./:/manifests:ro

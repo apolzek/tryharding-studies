@@ -33,7 +33,7 @@ connectors:
   count:
     spans:
       team.spans.count:
-        description: 
+        description:
         conditions:
           - 'attributes["team"] == "platform"'
 

@@ -42,11 +42,11 @@ REQUEST_LATENCY_SUMMARY = Summary(
 def hello():
     start_time = time.time()
     REQUEST_COUNT.labels('GET', '/', 200).inc()
-    
+
     # Adiciona um delay aleatório entre 0.1 e 2 segundos
     delay = random.uniform(0.1, 2.0)
     time.sleep(delay)
-    
+
     response = jsonify(message='Hello, world!')
     latency = time.time() - start_time
     REQUEST_LATENCY.labels('GET', '/').observe(latency)

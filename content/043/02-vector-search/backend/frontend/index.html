@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>02 — Vector Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #0f1115;
+        --panel: #161923;
+        --accent: #a78bfa;
+        --muted: #8a93a6;
+        --text: #e8ebf2;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      header { padding: 24px 32px; border-bottom: 1px solid #242938; }
+      header h1 { margin: 0; font-size: 18px; }
+      header .tag {
+        display: inline-block;
+        margin-right: 8px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: #1f2533;
+        color: var(--accent);
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+      main { max-width: 860px; margin: 24px auto; padding: 0 24px; }
+      .search-row { display: flex; gap: 8px; }
+      input[type="text"] {
+        flex: 1;
+        padding: 12px 14px;
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid #2a3142;
+        border-radius: 8px;
+        font-size: 15px;
+      }
+      input[type="text"]:focus { outline: none; border-color: var(--accent); }
+      button {
+        padding: 12px 18px;
+        background: var(--accent);
+        color: #0b0d12;
+        border: 0;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .meta { color: var(--muted); font-size: 13px; margin: 12px 4px; }
+      .hit {
+        background: var(--panel);
+        border: 1px solid #242938;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 10px;
+      }
+      .hit h3 { margin: 0 0 6px; font-size: 15px; }
+      .hit .score {
+        float: right;
+        font-family: ui-monospace, monospace;
+        color: var(--accent);
+        font-size: 12px;
+      }
+      .hit p { margin: 0; color: #c6ccd8; font-size: 14px; line-height: 1.45; }
+      .suggestions {
+        display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;
+      }
+      .suggestions span {
+        padding: 4px 10px;
+        background: #1f2533;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--muted);
+      }
+      .suggestions span:hover { color: var(--text); }
+      .callout {
+        background: #1b1540;
+        border-left: 3px solid var(--accent);
+        padding: 10px 14px;
+        margin-top: 14px;
+        border-radius: 4px;
+        font-size: 13px;
+        color: #d7d5ff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="tag">02 / 05</span>
+      <h1 style="display: inline">Vector Search · multilingual-e5 + Qdrant</h1>
+    </header>
+    <main>
+      <form id="form" class="search-row">
+        <input
+          id="q"
+          type="text"
+          placeholder="ex: onde guardo embeddings para similaridade?"
+          autocomplete="off"
+        />
+        <button type="submit">Buscar</button>
+      </form>
+      <div class="suggestions">
+        <span>onde guardo embeddings para similaridade</span>
+        <span>ferramenta para provisionar nuvem de forma declarativa</span>
+        <span>sistema de filas com ack e garantia de entrega</span>
+        <span>biblioteca frontend com componentes</span>
+      </div>
+      <div class="callout">
+        O ranking aqui é por <b>similaridade de cosseno</b> entre o vetor da query e o vetor de cada documento — então sinônimos e paráfrases funcionam mesmo sem compartilhar palavras.
+      </div>
+      <div id="meta" class="meta"></div>
+      <div id="results"></div>
+    </main>
+    <script>
+      const form = document.getElementById("form");
+      const qInput = document.getElementById("q");
+      const meta = document.getElementById("meta");
+      const results = document.getElementById("results");
+
+      document.querySelectorAll(".suggestions span").forEach((s) => {
+        s.addEventListener("click", () => {
+          qInput.value = s.textContent;
+          form.requestSubmit();
+        });
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const q = qInput.value.trim();
+        if (!q) return;
+        meta.textContent = "Buscando…";
+        results.innerHTML = "";
+        try {
+          const res = await fetch(`/search?q=${encodeURIComponent(q)}&k=5`);
+          const data = await res.json();
+          meta.textContent = `${data.hits.length} resultado(s) em ${data.ms}ms (inclui cálculo do embedding da query).`;
+          results.innerHTML = data.hits
+            .map(
+              (h) => `
+              <div class="hit">
+                <span class="score">cos ${h.score.toFixed(3)}</span>
+                <h3>${h.title}</h3>
+                <p>${h.content}</p>
+              </div>
+            `
+            )
+            .join("");
+        } catch (err) {
+          meta.textContent = "Erro: " + err.message;
+        }
+      });
+    </script>
+  </body>
+</html>

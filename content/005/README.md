@@ -27,7 +27,7 @@ Create and start containers
 docker compose up
 ```
 
-Check 
+Check
 ```sh
 jq -s '[.[] | .resourceLogs[]?.scopeLogs[]?.logRecords[]?] | length' logs-hot.json
 jq -s '[.[] | .resourceLogs[]?.scopeLogs[]?.logRecords[]?] | length' logs-cold.json

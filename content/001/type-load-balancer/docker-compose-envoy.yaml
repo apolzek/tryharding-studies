@@ -28,4 +28,3 @@ services:
     image: traefik/whoami
     expose:
       - "80"
-

@@ -66,7 +66,7 @@ metrics:
 
   # # Examples with different regex patterns
   # - name: cpu_usage
-  #   description: CPU usage percentage 
+  #   description: CPU usage percentage
   #   labels:
   #     - name: core_id
   #       high_cardinality: true

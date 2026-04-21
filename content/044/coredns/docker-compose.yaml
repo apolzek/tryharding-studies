@@ -1,0 +1,13 @@
+services:
+  coredns:
+    image: coredns/coredns:1.11.3
+    container_name: cncf-coredns
+    command: ["-conf", "/etc/coredns/Corefile"]
+    volumes:
+      - ./Corefile:/etc/coredns/Corefile:ro
+      - ./db.internal.lab:/etc/coredns/db.internal.lab:ro
+      - ./hosts:/etc/coredns/hosts:ro
+    ports:
+      - "1053:53/udp"
+      - "1053:53/tcp"
+      - "9153:9153"

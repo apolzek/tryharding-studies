@@ -12,10 +12,10 @@ services:
       - ./logs-hot.json:/tmp/logs-hot.json
       - ./logs-cold.json:/tmp/logs-cold.json
       - ./logs.json:/tmp/logs.json
-    command: 
+    command:
       - "--config=/etc/otelcol-contrib/config.yaml"
     ports:
-      - "4317:4317"  
-      - "4318:4318"  
+      - "4317:4317"
+      - "4318:4318"
       - "55679:55679"  # zPages or other internal debugging ports
       - "8888:8888"    # Prometheus metrics endpoint

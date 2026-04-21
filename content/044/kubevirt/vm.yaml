@@ -1,0 +1,29 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: cirros-vm
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: cirros
+    spec:
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk: { bus: virtio }
+          interfaces:
+            - name: default
+              masquerade: {}
+        resources:
+          requests:
+            memory: 128Mi
+      networks:
+        - name: default
+          pod: {}
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/kubevirt/cirros-container-disk-demo:v1.3.1

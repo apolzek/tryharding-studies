@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>03 — Hybrid Search (RRF)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #0f1115;
+        --panel: #161923;
+        --accent: #34d399;
+        --muted: #8a93a6;
+        --text: #e8ebf2;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      header { padding: 24px 32px; border-bottom: 1px solid #242938; }
+      header h1 { margin: 0; font-size: 18px; }
+      header .tag {
+        display: inline-block;
+        margin-right: 8px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: #1f2533;
+        color: var(--accent);
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+      main { max-width: 880px; margin: 24px auto; padding: 0 24px; }
+      .row { display: flex; gap: 8px; align-items: center; }
+      input[type="text"] {
+        flex: 1;
+        padding: 12px 14px;
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid #2a3142;
+        border-radius: 8px;
+        font-size: 15px;
+      }
+      input[type="text"]:focus { outline: none; border-color: var(--accent); }
+      select {
+        padding: 12px;
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid #2a3142;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+      button {
+        padding: 12px 18px;
+        background: var(--accent);
+        color: #0b0d12;
+        border: 0;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .meta { color: var(--muted); font-size: 13px; margin: 12px 4px; }
+      .hit {
+        background: var(--panel);
+        border: 1px solid #242938;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 10px;
+      }
+      .hit h3 { margin: 0 0 6px; font-size: 15px; }
+      .scores { float: right; font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); }
+      .scores .rrf { color: var(--accent); font-weight: 600; }
+      .scores .bm25 { color: #6ea8fe; }
+      .scores .vec { color: #a78bfa; }
+      .hit p { margin: 0; color: #c6ccd8; font-size: 14px; line-height: 1.45; }
+      .suggestions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+      .suggestions span {
+        padding: 4px 10px;
+        background: #1f2533;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--muted);
+      }
+      .callout {
+        background: #0d3028;
+        border-left: 3px solid var(--accent);
+        padding: 10px 14px;
+        margin-top: 14px;
+        border-radius: 4px;
+        font-size: 13px;
+        color: #b8f0d8;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="tag">03 / 05</span>
+      <h1 style="display: inline">Hybrid Search · RRF(BM25 + vector)</h1>
+    </header>
+    <main>
+      <form id="form" class="row">
+        <input id="q" type="text" placeholder="ex: sistema de filas com ack" autocomplete="off" />
+        <select id="mode">
+          <option value="hybrid" selected>hybrid (RRF)</option>
+          <option value="bm25">bm25 only</option>
+          <option value="vector">vector only</option>
+        </select>
+        <button type="submit">Buscar</button>
+      </form>
+      <div class="suggestions">
+        <span>sistema de filas com ack e garantia de entrega</span>
+        <span>guardar embeddings para similaridade</span>
+        <span>orquestração de containers</span>
+        <span>banco de grafos para detecção de fraude</span>
+      </div>
+      <div class="callout">
+        Experimente a mesma query nos três modos: <b>hybrid</b> herda o melhor dos dois, porque RRF soma <code>1/(60+rank)</code> de cada lista. Um doc só precisa estar bem rankeado em <i>uma</i> delas para subir.
+      </div>
+      <div id="meta" class="meta"></div>
+      <div id="results"></div>
+    </main>
+    <script>
+      const form = document.getElementById("form");
+      const qInput = document.getElementById("q");
+      const modeSel = document.getElementById("mode");
+      const meta = document.getElementById("meta");
+      const results = document.getElementById("results");
+      document.querySelectorAll(".suggestions span").forEach((s) => {
+        s.addEventListener("click", () => { qInput.value = s.textContent; form.requestSubmit(); });
+      });
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const q = qInput.value.trim();
+        if (!q) return;
+        meta.textContent = "Buscando…";
+        results.innerHTML = "";
+        const res = await fetch(`/search?q=${encodeURIComponent(q)}&k=6&mode=${modeSel.value}`);
+        const data = await res.json();
+        meta.textContent = `modo=${data.mode} · ${data.hits.length} hit(s) · ${data.ms}ms`;
+        results.innerHTML = data.hits.map((h) => {
+          const scoreLine = data.mode === "hybrid"
+            ? `<span class="rrf">rrf ${h.score.toFixed(4)}</span>
+               <span class="bm25"> · bm25 rank ${h.bm25_rank ?? "—"}</span>
+               <span class="vec"> · vec rank ${h.vector_rank ?? "—"}</span>`
+            : `<span class="rrf">${h.score.toFixed(3)}</span>`;
+          return `<div class="hit">
+            <span class="scores">${scoreLine}</span>
+            <h3>${h.title}</h3>
+            <p>${h.content}</p>
+          </div>`;
+        }).join("");
+      });
+    </script>
+  </body>
+</html>

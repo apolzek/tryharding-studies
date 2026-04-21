@@ -1,0 +1,13 @@
+route:
+  receiver: default
+  group_by: [alertname, instance]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+
+receivers:
+  - name: default
+    # Em produção: coloque webhook do Slack / PagerDuty / OpsGenie
+    webhook_configs:
+      - url: http://host.docker.internal:5001/hook
+        send_resolved: true
