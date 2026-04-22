@@ -22,7 +22,7 @@ func newTestHandler(t *testing.T, upstream *httptest.Server, secret []byte, tid 
 func TestRejectsMissingToken(t *testing.T) {
 	up := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer up.Close()
-	h := newTestHandler(t, up, []byte("0123456789abcdef0123456789abcdef"), "t-abc")
+	h := newTestHandler(t, up, []byte("0123456789abcdef0123456789abcdef") /* pragma: allowlist secret */, "t-abc")
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, httptest.NewRequest("POST", "/v1/traces", strings.NewReader("{}")))
 	if rr.Code != 401 {
@@ -33,7 +33,7 @@ func TestRejectsMissingToken(t *testing.T) {
 func TestRejectsBadToken(t *testing.T) {
 	up := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer up.Close()
-	h := newTestHandler(t, up, []byte("0123456789abcdef0123456789abcdef"), "t-abc")
+	h := newTestHandler(t, up, []byte("0123456789abcdef0123456789abcdef") /* pragma: allowlist secret */, "t-abc")
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/v1/traces", strings.NewReader("{}"))
 	req.Header.Set("Authorization", "Bearer not-a-token")
@@ -44,7 +44,7 @@ func TestRejectsBadToken(t *testing.T) {
 }
 
 func TestForwardsValidToken(t *testing.T) {
-	secret := []byte("0123456789abcdef0123456789abcdef")
+	secret := []byte("0123456789abcdef0123456789abcdef") // pragma: allowlist secret
 	tok, _ := jwtpkg.Issue(secret, "t-abc", time.Hour)
 	var seenTid, seenAuth string
 	up := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +70,7 @@ func TestForwardsValidToken(t *testing.T) {
 }
 
 func TestRejectsTidMismatch(t *testing.T) {
-	secret := []byte("0123456789abcdef0123456789abcdef")
+	secret := []byte("0123456789abcdef0123456789abcdef") /* pragma: allowlist secret */
 	tok, _ := jwtpkg.Issue(secret, "t-other", time.Hour)
 	up := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { t.Fatal("forwarded") }))
 	defer up.Close()
@@ -87,7 +87,7 @@ func TestRejectsTidMismatch(t *testing.T) {
 func TestHealthz(t *testing.T) {
 	up := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer up.Close()
-	h := newTestHandler(t, up, []byte("0123456789abcdef0123456789abcdef"), "t-abc")
+	h := newTestHandler(t, up, []byte("0123456789abcdef0123456789abcdef") /* pragma: allowlist secret */, "t-abc")
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, httptest.NewRequest("GET", "/healthz", nil))
 	if rr.Code != 200 {

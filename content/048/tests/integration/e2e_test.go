@@ -11,7 +11,7 @@ import (
 )
 
 func TestIssuedTokenVerifiesWithSharedSecret(t *testing.T) {
-	const secret = "0123456789abcdef0123456789abcdef"
+	const secret = "0123456789abcdef0123456789abcdef" // pragma: allowlist secret
 	const tid = "t-01HXYZABC"
 
 	tok, err := jwtpkg.Issue([]byte(secret), tid, 30*24*time.Hour)
@@ -28,7 +28,7 @@ func TestIssuedTokenVerifiesWithSharedSecret(t *testing.T) {
 }
 
 func TestCrossTenantTokenRejected(t *testing.T) {
-	const secret = "0123456789abcdef0123456789abcdef"
+	const secret = "0123456789abcdef0123456789abcdef" // pragma: allowlist secret
 	// Tenant A gets a token; tenant B's proxy must reject it.
 	tokA, _ := jwtpkg.Issue([]byte(secret), "t-A", time.Hour)
 	if _, err := jwtpkg.Verify([]byte(secret), "t-B", tokA); err == nil {

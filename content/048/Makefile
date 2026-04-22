@@ -28,7 +28,7 @@ frontend-up: ## dev server for frontend
 signup: ## curl test — register a tenant
 	@curl -sS -X POST http://localhost:8080/api/v1/register \
 	  -H 'content-type: application/json' \
-	  -d '{"email":"demo-$$$$@example.com","password":"hunter22hunter22"}' | jq .
+	  -d '{"email":"demo-$$$$@example.com","password":"hunter22hunter22"}' | jq . # pragma: allowlist secret
 
 .PHONY: test
 test: test-go test-front test-integration ## run all tests

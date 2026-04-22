@@ -4,8 +4,8 @@ import Dashboard from './Dashboard.jsx'
 
 const t = {
   tenant_id: 't-abc',
-  ingest_token: 'tokABCDEFGHJKLMNOP1234567890',
-  grafana_password: 'mysecret1234',
+  ingest_token: 'tokABCDEFGHJKLMNOP1234567890', // pragma: allowlist secret
+  grafana_password: 'mysecret1234', // pragma: allowlist secret
   collector_url: 'http://t-abc-ingest.localtest.me',
   grafana_url: 'http://t-abc-grafana.localtest.me',
   status: 'ready',

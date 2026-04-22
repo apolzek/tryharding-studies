@@ -52,10 +52,10 @@ func helmTemplate(t *testing.T, chart string, sets ...string) string {
 func TestChartRendersAllComponents(t *testing.T) {
 	out := helmTemplate(t, chartPath(t),
 		"tenant.id=t-test",
-		"tenant.grafanaAdminPassword=dev-password-123",
-		"tenant.ingestJWT.secret=0123456789abcdef0123456789abcdef",
+		"tenant.grafanaAdminPassword=dev-password-123", // pragma: allowlist secret
+		"tenant.ingestJWT.secret=0123456789abcdef0123456789abcdef", // pragma: allowlist secret
 		"tenant.ingestJWT.expectedTid=t-test",
-		"clickhouse.password=chpw",
+		"clickhouse.password=chpw", // pragma: allowlist secret
 	)
 	// Every top-level component must be present.
 	required := []string{
@@ -100,10 +100,10 @@ func TestIngestHostsUseTenantID(t *testing.T) {
 	out := helmTemplate(t, chartPath(t),
 		"tenant.id=t-xyz",
 		"tenant.ingestDomain=example.dev",
-		"tenant.grafanaAdminPassword=dev-password-123",
-		"tenant.ingestJWT.secret=0123456789abcdef0123456789abcdef",
+		"tenant.grafanaAdminPassword=dev-password-123", // pragma: allowlist secret
+		"tenant.ingestJWT.secret=0123456789abcdef0123456789abcdef", // pragma: allowlist secret
 		"tenant.ingestJWT.expectedTid=t-xyz",
-		"clickhouse.password=chpw",
+		"clickhouse.password=chpw", // pragma: allowlist secret
 	)
 	for _, h := range []string{"t-xyz-ingest.example.dev", "t-xyz-grafana.example.dev"} {
 		if !strings.Contains(out, h) {

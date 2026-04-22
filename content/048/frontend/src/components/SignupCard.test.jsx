@@ -15,7 +15,7 @@ describe('SignupCard', () => {
       json: () => Promise.resolve({
         tenant_id: 't-abc',
         ingest_token: 'tok',
-        grafana_password: 'pwd',
+        grafana_password: 'pwd', // pragma: allowlist secret
         collector_url: 'http://t-abc-ingest.localtest.me',
         grafana_url: 'http://t-abc-grafana.localtest.me',
       }),

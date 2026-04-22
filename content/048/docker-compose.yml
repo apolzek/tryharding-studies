@@ -3,7 +3,7 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: obs
-      POSTGRES_PASSWORD: obs
+      POSTGRES_PASSWORD: obs # pragma: allowlist secret
       POSTGRES_DB: obs
     ports: ["5432:5432"]
     volumes:
@@ -19,8 +19,8 @@ services:
       context: ./services
       dockerfile: auth/Dockerfile
     environment:
-      OBS_DB_DSN: postgres://obs:obs@postgres:5432/obs?sslmode=disable
-      OBS_JWT_SECRET: dev-only-change-me-please-32bytes!!
+      OBS_DB_DSN: postgres://obs:obs@postgres:5432/obs?sslmode=disable # pragma: allowlist secret
+      OBS_JWT_SECRET: dev-only-change-me-please-32bytes!! # pragma: allowlist secret
       OBS_LOG_LEVEL: info
     depends_on:
       postgres:
@@ -31,11 +31,11 @@ services:
       context: ./services
       dockerfile: provisioner/Dockerfile
     environment:
-      OBS_DB_DSN: postgres://obs:obs@postgres:5432/obs?sslmode=disable
+      OBS_DB_DSN: postgres://obs:obs@postgres:5432/obs?sslmode=disable # pragma: allowlist secret
       OBS_KUBECONFIG: /kube/config
       OBS_CHART_PATH: /charts/tenant-stack
       OBS_INGEST_DOMAIN: localtest.me
-      OBS_JWT_SECRET: dev-only-change-me-please-32bytes!!
+      OBS_JWT_SECRET: dev-only-change-me-please-32bytes!! # pragma: allowlist secret
       OBS_LOG_LEVEL: info
     volumes:
       - ${HOME}/.kube:/kube:ro
@@ -51,8 +51,8 @@ services:
       dockerfile: api-gateway/Dockerfile
     environment:
       OBS_AUTH_URL: http://auth:8081
-      OBS_DB_DSN: postgres://obs:obs@postgres:5432/obs?sslmode=disable
-      OBS_JWT_SECRET: dev-only-change-me-please-32bytes!!
+      OBS_DB_DSN: postgres://obs:obs@postgres:5432/obs?sslmode=disable # pragma: allowlist secret
+      OBS_JWT_SECRET: dev-only-change-me-please-32bytes!! # pragma: allowlist secret
       OBS_LOG_LEVEL: info
     ports: ["8080:8080"]
     depends_on:

@@ -9,7 +9,7 @@ import (
 )
 
 func TestIssueAndVerifyRoundTrip(t *testing.T) {
-	secret := []byte("0123456789abcdef0123456789abcdef")
+	secret := []byte("0123456789abcdef0123456789abcdef") // pragma: allowlist secret
 	tok, err := jwtpkg.Issue(secret, "t-abc", time.Hour)
 	if err != nil {
 		t.Fatal(err)
@@ -24,8 +24,8 @@ func TestIssueAndVerifyRoundTrip(t *testing.T) {
 }
 
 func TestVerifyRejectsWrongSecret(t *testing.T) {
-	secret := []byte("0123456789abcdef0123456789abcdef")
-	other := []byte("ffffffffffffffffffffffffffffffff")
+	secret := []byte("0123456789abcdef0123456789abcdef") // pragma: allowlist secret
+	other := []byte("ffffffffffffffffffffffffffffffff") // pragma: allowlist secret
 	tok, _ := jwtpkg.Issue(secret, "t-abc", time.Hour)
 	if _, err := jwtpkg.Verify(other, "t-abc", tok); err == nil {
 		t.Fatal("expected error with wrong secret")
@@ -33,7 +33,7 @@ func TestVerifyRejectsWrongSecret(t *testing.T) {
 }
 
 func TestVerifyRejectsTidMismatch(t *testing.T) {
-	secret := []byte("0123456789abcdef0123456789abcdef")
+	secret := []byte("0123456789abcdef0123456789abcdef") // pragma: allowlist secret
 	tok, _ := jwtpkg.Issue(secret, "t-abc", time.Hour)
 	_, err := jwtpkg.Verify(secret, "t-xyz", tok)
 	if err == nil || !strings.Contains(err.Error(), "tid") {
@@ -48,7 +48,7 @@ func TestIssueRequiresStrongSecret(t *testing.T) {
 }
 
 func TestVerifyRejectsExpired(t *testing.T) {
-	secret := []byte("0123456789abcdef0123456789abcdef")
+	secret := []byte("0123456789abcdef0123456789abcdef") // pragma: allowlist secret
 	tok, _ := jwtpkg.Issue(secret, "t-abc", 1*time.Nanosecond)
 	time.Sleep(5 * time.Millisecond)
 	if _, err := jwtpkg.Verify(secret, "t-abc", tok); err == nil {
@@ -57,7 +57,7 @@ func TestVerifyRejectsExpired(t *testing.T) {
 }
 
 func TestIssueNonExpiring(t *testing.T) {
-	secret := []byte("0123456789abcdef0123456789abcdef")
+	secret := []byte("0123456789abcdef0123456789abcdef") // pragma: allowlist secret
 	tok, err := jwtpkg.Issue(secret, "t-abc", 0)
 	if err != nil {
 		t.Fatal(err)
