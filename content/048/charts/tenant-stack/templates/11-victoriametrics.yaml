@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: victoriametrics
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+spec:
+  selector: {app: victoriametrics}
+  ports:
+    - {name: http, port: 8428, targetPort: 8428}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: victoriametrics
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+spec:
+  serviceName: victoriametrics
+  replicas: 1
+  selector:
+    matchLabels: {app: victoriametrics}
+  template:
+    metadata:
+      labels:
+        app: victoriametrics
+        {{- include "tenant-stack.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: vm
+          image: "{{ .Values.victoriametrics.image.repository }}:{{ .Values.victoriametrics.image.tag }}"
+          args:
+            - "-storageDataPath=/storage"
+            - "-retentionPeriod={{ .Values.victoriametrics.retention }}"
+            - "-httpListenAddr=:8428"
+            - "-search.maxConcurrentRequests=8"
+          ports:
+            - {name: http, containerPort: 8428}
+          readinessProbe:
+            httpGet: {path: /health, port: http}
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          volumeMounts:
+            - {name: data, mountPath: /storage}
+          resources:
+            requests: {{- toYaml .Values.resources.small.requests | nindent 14 }}
+            limits:   {{- toYaml .Values.resources.medium.limits   | nindent 14 }}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: {{ .Values.victoriametrics.storage | quote }}

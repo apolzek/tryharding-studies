@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 127.0.0.1:4317   # only auth-proxy fronts the public 4317/4318
+          http:
+            endpoint: 127.0.0.1:4318
+    processors:
+      batch:
+        timeout: 5s
+        send_batch_size: 2048
+      memory_limiter:
+        check_interval: 2s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      resource:
+        attributes:
+          - key: tenant.id
+            value: {{ .Values.tenant.id | quote }}
+            action: insert
+    exporters:
+      prometheusremotewrite:
+        endpoint: "http://victoriametrics:8428/api/v1/write"
+        tls: {insecure: true}
+      otlp/jaeger:
+        endpoint: "jaeger:4317"
+        tls: {insecure: true}
+      clickhouse:
+        endpoint: "tcp://clickhouse:9000?database=otel"
+        username: ${env:CH_USER}
+        password: ${env:CH_PASSWORD}
+        logs_table_name: logs
+        traces_table_name: traces
+        metrics_table_name_sum: metrics_sum
+        ttl: 720h
+        create_schema: false   # we create schema in the clickhouse init configmap
+    extensions:
+      health_check: {endpoint: 0.0.0.0:13133}
+    service:
+      extensions: [health_check]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [otlp/jaeger, clickhouse]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [prometheusremotewrite, clickhouse]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [clickhouse]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+spec:
+  selector: {app: otel-collector}
+  ports:
+    # Public: always hits auth-proxy. Internal pods CAN talk to auth-proxy too,
+    # but there's no reason to — they'd just go through the same JWT check.
+    - {name: http-proxy, port: {{ .Values.collector.service.proxyHTTP }}, targetPort: 8443}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: otel-collector}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+        {{- include "tenant-stack.labels" . | nindent 8 }}
+      annotations:
+        # Hash of the collector config so ConfigMap changes re-roll the pod.
+        checksum/config: '{{ .Values.tenant.id | sha256sum }}'
+    spec:
+      containers:
+        - name: collector
+          image: "{{ .Values.collector.image.repository }}:{{ .Values.collector.image.tag }}"
+          args: ["--config=/etc/otel/config.yaml"]
+          env:
+            - {name: CH_USER,     valueFrom: {secretKeyRef: {name: clickhouse-creds, key: user}}}
+            - {name: CH_PASSWORD, valueFrom: {secretKeyRef: {name: clickhouse-creds, key: password}}}
+          ports:
+            - {name: health, containerPort: 13133}
+          readinessProbe:
+            httpGet: {path: /, port: health}
+            initialDelaySeconds: 5
+          volumeMounts:
+            - {name: config, mountPath: /etc/otel}
+          resources:
+            requests: {{- toYaml .Values.resources.small.requests | nindent 14 }}
+            limits:   {{- toYaml .Values.resources.medium.limits   | nindent 14 }}
+        - name: auth-proxy
+          image: "{{ .Values.collector.authProxy.image.repository }}:{{ .Values.collector.authProxy.image.tag }}"
+          imagePullPolicy: {{ .Values.collector.authProxy.image.pullPolicy }}
+          env:
+            - {name: PROXY_LISTEN, value: ":8443"}
+            - {name: UPSTREAM_HTTP, value: "http://127.0.0.1:4318"}
+            - {name: UPSTREAM_GRPC, value: "127.0.0.1:4317"}
+            - {name: JWT_SECRET,   valueFrom: {secretKeyRef: {name: tenant-auth, key: jwt-secret}}}
+            - {name: EXPECTED_TID, valueFrom: {secretKeyRef: {name: tenant-auth, key: expected-tid}}}
+          ports:
+            - {name: http, containerPort: 8443}
+          readinessProbe:
+            httpGet: {path: /healthz, port: http}
+            initialDelaySeconds: 2
+          resources:
+            requests: {{- toYaml .Values.resources.small.requests | nindent 14 }}
+            limits:   {{- toYaml .Values.resources.small.limits   | nindent 14 }}
+      volumes:
+        - name: config
+          configMap: {name: otel-collector-config}

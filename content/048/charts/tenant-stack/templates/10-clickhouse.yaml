@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clickhouse-init
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+data:
+  init-db.sql: |
+    CREATE DATABASE IF NOT EXISTS otel;
+    CREATE TABLE IF NOT EXISTS otel.logs (
+      Timestamp          DateTime64(9) CODEC(Delta, ZSTD(1)),
+      TraceId            String CODEC(ZSTD(1)),
+      SpanId             String CODEC(ZSTD(1)),
+      SeverityText       LowCardinality(String) CODEC(ZSTD(1)),
+      SeverityNumber     Int32 CODEC(ZSTD(1)),
+      ServiceName        LowCardinality(String) CODEC(ZSTD(1)),
+      Body               String CODEC(ZSTD(1)),
+      ResourceAttributes Map(LowCardinality(String), String) CODEC(ZSTD(1)),
+      LogAttributes      Map(LowCardinality(String), String) CODEC(ZSTD(1))
+    ) ENGINE = MergeTree
+    PARTITION BY toDate(Timestamp)
+    ORDER BY (ServiceName, Timestamp)
+    TTL toDateTime(Timestamp) + INTERVAL 30 DAY;
+
+    CREATE TABLE IF NOT EXISTS otel.traces (
+      Timestamp        DateTime64(9) CODEC(Delta, ZSTD(1)),
+      TraceId          String CODEC(ZSTD(1)),
+      SpanId           String CODEC(ZSTD(1)),
+      ParentSpanId     String CODEC(ZSTD(1)),
+      SpanName         LowCardinality(String) CODEC(ZSTD(1)),
+      SpanKind         LowCardinality(String) CODEC(ZSTD(1)),
+      ServiceName      LowCardinality(String) CODEC(ZSTD(1)),
+      Duration         Int64 CODEC(ZSTD(1)),
+      StatusCode       LowCardinality(String) CODEC(ZSTD(1)),
+      StatusMessage    String CODEC(ZSTD(1)),
+      ResourceAttributes Map(LowCardinality(String), String) CODEC(ZSTD(1)),
+      SpanAttributes     Map(LowCardinality(String), String) CODEC(ZSTD(1))
+    ) ENGINE = MergeTree
+    PARTITION BY toDate(Timestamp)
+    ORDER BY (ServiceName, SpanName, Timestamp)
+    TTL toDateTime(Timestamp) + INTERVAL 30 DAY;
+
+    CREATE TABLE IF NOT EXISTS otel.metrics_sum (
+      ResourceAttributes Map(LowCardinality(String), String) CODEC(ZSTD(1)),
+      MetricName   LowCardinality(String) CODEC(ZSTD(1)),
+      ServiceName  LowCardinality(String) CODEC(ZSTD(1)),
+      Attributes   Map(LowCardinality(String), String) CODEC(ZSTD(1)),
+      StartTimeUnix DateTime64(9) CODEC(Delta, ZSTD(1)),
+      TimeUnix      DateTime64(9) CODEC(Delta, ZSTD(1)),
+      Value Float64 CODEC(ZSTD(1))
+    ) ENGINE = MergeTree
+    PARTITION BY toDate(TimeUnix)
+    ORDER BY (ServiceName, MetricName, TimeUnix)
+    TTL toDateTime(TimeUnix) + INTERVAL 30 DAY;
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clickhouse
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: clickhouse
+  ports:
+    - name: http
+      port: 8123
+      targetPort: 8123
+    - name: native
+      port: 9000
+      targetPort: 9000
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: clickhouse
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+spec:
+  serviceName: clickhouse
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clickhouse
+  template:
+    metadata:
+      labels:
+        app: clickhouse
+        {{- include "tenant-stack.labels" . | nindent 8 }}
+    spec:
+      securityContext:
+        fsGroup: 101
+        runAsUser: 101
+        runAsNonRoot: true
+      containers:
+        - name: clickhouse
+          image: "{{ .Values.clickhouse.image.repository }}:{{ .Values.clickhouse.image.tag }}"
+          ports:
+            - {name: http,   containerPort: 8123}
+            - {name: native, containerPort: 9000}
+          env:
+            - name: CLICKHOUSE_USER
+              valueFrom: {secretKeyRef: {name: clickhouse-creds, key: user}}
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom: {secretKeyRef: {name: clickhouse-creds, key: password}}
+            - name: CLICKHOUSE_DB
+              value: otel
+          readinessProbe:
+            httpGet: {path: /ping, port: http}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - {name: data,    mountPath: /var/lib/clickhouse}
+            - {name: initdb,  mountPath: /docker-entrypoint-initdb.d}
+          resources:
+            requests: {{- toYaml .Values.resources.medium.requests | nindent 14 }}
+            limits:   {{- toYaml .Values.resources.medium.limits   | nindent 14 }}
+      volumes:
+        - name: initdb
+          configMap: {name: clickhouse-init}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: {{ .Values.clickhouse.storage | quote }}

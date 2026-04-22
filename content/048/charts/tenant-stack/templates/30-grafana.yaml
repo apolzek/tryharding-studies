@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: VictoriaMetrics
+        type: prometheus
+        access: proxy
+        url: http://victoriametrics:8428
+        isDefault: true
+        editable: false
+      - name: Jaeger
+        type: jaeger
+        access: proxy
+        url: http://jaeger:16686
+        editable: false
+      - name: ClickHouse
+        type: grafana-clickhouse-datasource
+        access: proxy
+        jsonData:
+          host: clickhouse
+          port: 9000
+          protocol: native
+          defaultDatabase: otel
+          username: ${CH_USER}
+        secureJsonData:
+          password: ${CH_PASSWORD}
+        editable: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+data:
+  grafana.ini: |
+    [server]
+    root_url = http://{{ include "tenant-stack.host" (dict "svc" "grafana" "Values" .Values) }}
+    [users]
+    allow_sign_up = false
+    [auth.anonymous]
+    enabled = false
+    [security]
+    disable_initial_admin_creation = false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+spec:
+  selector: {app: grafana}
+  ports:
+    - {name: http, port: 3000, targetPort: 3000}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: grafana}
+  template:
+    metadata:
+      labels:
+        app: grafana
+        {{- include "tenant-stack.labels" . | nindent 8 }}
+    spec:
+      securityContext: {fsGroup: 472, runAsUser: 472, runAsNonRoot: true}
+      containers:
+        - name: grafana
+          image: "{{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}"
+          env:
+            - {name: GF_SECURITY_ADMIN_USER,     valueFrom: {secretKeyRef: {name: grafana-admin, key: admin-user}}}
+            - {name: GF_SECURITY_ADMIN_PASSWORD, valueFrom: {secretKeyRef: {name: grafana-admin, key: admin-password}}}
+            - {name: CH_USER,     valueFrom: {secretKeyRef: {name: clickhouse-creds, key: user}}}
+            - {name: CH_PASSWORD, valueFrom: {secretKeyRef: {name: clickhouse-creds, key: password}}}
+            - {name: GF_INSTALL_PLUGINS, value: "grafana-clickhouse-datasource"}
+          ports:
+            - {name: http, containerPort: 3000}
+          readinessProbe:
+            httpGet: {path: /api/health, port: http}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          volumeMounts:
+            - {name: datasources, mountPath: /etc/grafana/provisioning/datasources}
+            - {name: config,      mountPath: /etc/grafana/grafana.ini, subPath: grafana.ini}
+            - {name: data,        mountPath: /var/lib/grafana}
+          resources:
+            requests: {{- toYaml .Values.resources.small.requests | nindent 14 }}
+            limits:   {{- toYaml .Values.resources.medium.limits   | nindent 14 }}
+      volumes:
+        - name: datasources
+          configMap: {name: grafana-datasources}
+        - name: config
+          configMap: {name: grafana-config}
+        - name: data
+          emptyDir: {}

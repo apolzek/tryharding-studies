@@ -1,0 +1,13 @@
+# node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# go build artifacts (bare binaries in each service dir)
+services/auth/auth
+services/provisioner/provisioner
+services/api-gateway/api-gateway
+services/collector-proxy/collector-proxy
+*.test
+*.out
+*.prof

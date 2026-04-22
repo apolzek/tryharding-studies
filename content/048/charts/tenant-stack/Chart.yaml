@@ -1,0 +1,11 @@
+apiVersion: v2
+name: tenant-stack
+description: Per-tenant observability stack (otel-collector + auth-proxy, VictoriaMetrics, Jaeger, ClickHouse, Grafana)
+type: application
+# Chart version tracks chart structure changes.
+# App version tracks the default combined stack version — bump when updating the values matrix.
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.27.0-0"
+maintainers:
+  - name: obs-saas

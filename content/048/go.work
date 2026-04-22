@@ -1,0 +1,10 @@
+go 1.22.0
+
+use (
+    ./services/shared
+    ./services/auth
+    ./services/provisioner
+    ./services/api-gateway
+    ./services/collector-proxy
+    ./tests/integration
+)

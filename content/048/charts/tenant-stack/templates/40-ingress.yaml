@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tenant-ingress
+  labels: {{- include "tenant-stack.labels" . | nindent 4 }}
+  annotations:
+    # Large OTLP batches can exceed nginx's default body size.
+    nginx.ingress.kubernetes.io/proxy-body-size: "16m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ include "tenant-stack.host" (dict "svc" "ingest" "Values" .Values) }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: otel-collector
+                port:
+                  number: {{ .Values.collector.service.proxyHTTP }}
+    - host: {{ include "tenant-stack.host" (dict "svc" "grafana" "Values" .Values) }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 3000

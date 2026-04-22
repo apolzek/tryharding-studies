@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: obs
+      POSTGRES_PASSWORD: obs
+      POSTGRES_DB: obs
+    ports: ["5432:5432"]
+    volumes:
+      - pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U obs"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  auth:
+    build:
+      context: ./services
+      dockerfile: auth/Dockerfile
+    environment:
+      OBS_DB_DSN: postgres://obs:obs@postgres:5432/obs?sslmode=disable
+      OBS_JWT_SECRET: dev-only-change-me-please-32bytes!!
+      OBS_LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  provisioner:
+    build:
+      context: ./services
+      dockerfile: provisioner/Dockerfile
+    environment:
+      OBS_DB_DSN: postgres://obs:obs@postgres:5432/obs?sslmode=disable
+      OBS_KUBECONFIG: /kube/config
+      OBS_CHART_PATH: /charts/tenant-stack
+      OBS_INGEST_DOMAIN: localtest.me
+      OBS_JWT_SECRET: dev-only-change-me-please-32bytes!!
+      OBS_LOG_LEVEL: info
+    volumes:
+      - ${HOME}/.kube:/kube:ro
+      - ./charts:/charts:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    network_mode: host   # needs to talk to kind's 127.0.0.1 API server
+
+  api:
+    build:
+      context: ./services
+      dockerfile: api-gateway/Dockerfile
+    environment:
+      OBS_AUTH_URL: http://auth:8081
+      OBS_DB_DSN: postgres://obs:obs@postgres:5432/obs?sslmode=disable
+      OBS_JWT_SECRET: dev-only-change-me-please-32bytes!!
+      OBS_LOG_LEVEL: info
+    ports: ["8080:8080"]
+    depends_on:
+      - auth
+
+volumes:
+  pg: {}
