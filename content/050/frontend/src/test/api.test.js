@@ -17,7 +17,7 @@ describe('api client', () => {
     const [url, opts] = globalThis.fetch.mock.calls[0];
     expect(url).toContain('/api/auth/register');
     expect(opts.method).toBe('POST');
-    expect(JSON.parse(opts.body)).toEqual({ username: 'alice', password: 'pw', display_name: 'Alice' });
+    expect(JSON.parse(opts.body)).toEqual({ username: 'alice', password: 'pw', display_name: 'Alice' }); // pragma: allowlist secret
   });
 
   test('attaches Authorization header when token set', async () => {

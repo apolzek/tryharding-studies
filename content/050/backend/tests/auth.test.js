@@ -5,7 +5,7 @@ describe('auth', () => {
     const { app } = makeApp();
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ username: 'alice', password: 'secret1', display_name: 'Alice' });
+      .send({ username: 'alice', password: 'secret1', display_name: 'Alice' }); // pragma: allowlist secret
     expect(res.status).toBe(201);
     expect(res.body.token).toBeDefined();
     expect(res.body.user.username).toBe('alice');
@@ -15,7 +15,7 @@ describe('auth', () => {
     const { app } = makeApp();
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ username: 'a', password: 'secret1' });
+      .send({ username: 'a', password: 'secret1' }); // pragma: allowlist secret
     expect(res.status).toBe(400);
   });
 
@@ -24,26 +24,26 @@ describe('auth', () => {
     await registerUser(app, 'bob');
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ username: 'bob', password: 'secret1' });
+      .send({ username: 'bob', password: 'secret1' }); // pragma: allowlist secret
     expect(res.status).toBe(409);
   });
 
   test('login succeeds with valid credentials', async () => {
     const { app } = makeApp();
-    await registerUser(app, 'carol', 'pw12345');
+    await registerUser(app, 'carol', 'pw12345'); // pragma: allowlist secret
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ username: 'carol', password: 'pw12345' });
+      .send({ username: 'carol', password: 'pw12345' }); // pragma: allowlist secret
     expect(res.status).toBe(200);
     expect(res.body.token).toBeDefined();
   });
 
   test('login fails with wrong password', async () => {
     const { app } = makeApp();
-    await registerUser(app, 'dave', 'pw12345');
+    await registerUser(app, 'dave', 'pw12345'); // pragma: allowlist secret
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ username: 'dave', password: 'wrong' });
+      .send({ username: 'dave', password: 'wrong' }); // pragma: allowlist secret
     expect(res.status).toBe(401);
   });
 

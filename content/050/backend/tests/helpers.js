@@ -9,7 +9,7 @@ function makeApp() {
   return { app, db };
 }
 
-async function registerUser(app, username, password = 'secret1', display_name) {
+async function registerUser(app, username, password = 'secret1', display_name) { // pragma: allowlist secret
   const res = await request(app)
     .post('/api/auth/register')
     .send({ username, password, display_name: display_name || username });
