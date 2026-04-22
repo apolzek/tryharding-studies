@@ -1,0 +1,27 @@
+services:
+  backend:
+    build: ./backend
+    container_name: orkut-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - DB_PATH=/data/orkut.db
+      - JWT_SECRET=please-change-me
+    volumes:
+      - orkut-data:/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: orkut-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://backend:4000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  orkut-data:
