@@ -1,0 +1,49 @@
+services:
+  backend:
+    build: ./backend
+    container_name: sre-backend
+    ports:
+      - "8054:8054"
+    environment:
+      - PORT=8054
+      - DB_PATH=/data/sre.db
+      - JWT_SECRET=please-change-me
+      - ADMIN_USER=admin
+      - ADMIN_PASSWORD=admin123
+      - CHALLENGE_IMAGE=sre-challenge-base:latest
+      - CHALLENGE_PORT_MIN=9100
+      - CHALLENGE_PORT_MAX=9199
+      - CHALLENGE_HOST=${CHALLENGE_HOST:-localhost}
+      - CHALLENGE_NETWORK=sre-challenges
+      - DOCKER_GID=${DOCKER_GID:-999}
+    volumes:
+      - sre-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./challenge-base:/workspace/challenge-base:ro
+    networks:
+      - sre-net
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: sre-frontend
+    ports:
+      - "8053:8053"
+    environment:
+      - VITE_API_URL=http://localhost:8054
+      - VITE_CHALLENGE_HOST=localhost
+    depends_on:
+      - backend
+    networks:
+      - sre-net
+    restart: unless-stopped
+
+networks:
+  sre-net:
+    driver: bridge
+  sre-challenges:
+    driver: bridge
+    name: sre-challenges
+
+volumes:
+  sre-data:
