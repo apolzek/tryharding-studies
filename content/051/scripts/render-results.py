@@ -185,16 +185,28 @@ def patch_readme(summary, details, host):
     README.write_text(text)
 
 
+def write_best_csv(best):
+    """Overwrite results/best.csv with the post-processed peak values so that
+    the file is consistent with what ends up in the README."""
+    path = RESULTS / "best.csv"
+    with path.open("w") as f:
+        w = csv.writer(f)
+        w.writerow(["protocol", "cpus", "mem", "signal", "best_sustained_rate"])
+        for r in best:
+            w.writerow([r["protocol"], r["cpus"], r["mem"], r["signal"], r["best_sustained_rate"]])
+
+
 def main():
     best = read_best()
     if not best:
-        print("no results/best.csv yet — run the matrix first", file=sys.stderr)
+        print("no sweep CSVs in results/ yet — run the matrix first", file=sys.stderr)
         sys.exit(1)
+    write_best_csv(best)
     summary = summary_table(best)
     details = per_tier_tables(best)
     host = host_block()
     patch_readme(summary, details, host)
-    print("README.md updated.")
+    print("README.md + results/best.csv updated.")
     print("---- summary ----")
     print(summary)
 

@@ -1,0 +1,5 @@
+protocol,cpus,mem,signal,target_rate,generators,workers_each,per_worker_rate,received_rate,refused_rate,cpu_cores,cpu_util_pct,mem_rss_bytes,container_alive
+grpc,2,4g,traces,100000,1,50,2000,87620,0,0.340,17.0,223178752,true
+grpc,2,4g,traces,240000,4,50,1200,233360,0,0.941,47.0,232898560,true
+grpc,2,4g,traces,500000,6,50,1666,481125,0,1.750,87.5,261722112,true
+grpc,2,4g,traces,800000,6,50,2666,486190,0,1.722,86.1,260521984,true

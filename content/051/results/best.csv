@@ -1,6 +1,11 @@
 protocol,cpus,mem,signal,best_sustained_rate
-grpc,0.5,256m,traces,116750
-http,0.5,256m,traces,117840
-grpc,1,512m,traces,272560
-http,1,512m,traces,275600
-grpc,1,1g,traces,233245
+grpc,0.5,256m,traces,125210
+grpc,1,1g,traces,273909
+grpc,1,512m,traces,272645
+grpc,2,2g,traces,503309
+grpc,2,4g,traces,486190
+http,0.5,256m,traces,147045
+http,1,1g,traces,234780
+http,1,512m,traces,285585
+http,2,2g,traces,496230
+http,2,4g,traces,505825

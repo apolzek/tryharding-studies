@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv /home/apolzek/.claude/projects/-home-apolzek-Workdir-apolzek-tryharding-studies-content-022/memory/project_022_english_only.md /home/apolzek/.claude/projects/-home-apolzek-Workdir-apolzek-tryharding-studies/memory/project_022_english_only.md)",
+      "Bash(rmdir /home/apolzek/.claude/projects/-home-apolzek-Workdir-apolzek-tryharding-studies-content-022/memory /home/apolzek/.claude/projects/-home-apolzek-Workdir-apolzek-tryharding-studies-content-022)",
+      "Read(//home/apolzek/.claude/projects/-home-apolzek-Workdir-apolzek-tryharding-studies/memory/**)"
+    ]
+  }
+}
