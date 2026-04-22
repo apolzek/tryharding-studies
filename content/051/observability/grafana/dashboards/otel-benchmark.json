@@ -1,0 +1,188 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "type": "row",
+      "title": "Throughput (signals/s)",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "collapsed": false,
+      "id": 100
+    },
+    {
+      "type": "stat",
+      "title": "Spans accepted /s",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
+      "id": 1,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "sum by (protocol) (rate(otelcol_receiver_accepted_spans_total[15s]))", "legendFormat": "{{protocol}}"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto"},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "color": {"mode": "palette-classic"}}, "overrides": []}
+    },
+    {
+      "type": "stat",
+      "title": "Spans exported /s",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1},
+      "id": 2,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "sum by (protocol) (rate(otelcol_exporter_sent_spans_total[15s]))", "legendFormat": "{{protocol}}"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto"},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "color": {"mode": "palette-classic"}}, "overrides": []}
+    },
+    {
+      "type": "stat",
+      "title": "Spans refused /s",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1},
+      "id": 3,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "sum by (protocol) (rate(otelcol_receiver_refused_spans_total[15s]))", "legendFormat": "{{protocol}}"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto"},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []}
+    },
+    {
+      "type": "stat",
+      "title": "Send-failed spans /s",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1},
+      "id": 4,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "sum by (protocol) (rate(otelcol_exporter_send_failed_spans_total[15s]))", "legendFormat": "{{protocol}}"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto"},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Accepted vs Exported vs Refused (spans/s)",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 5},
+      "id": 5,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (protocol) (rate(otelcol_receiver_accepted_spans_total[15s]))", "legendFormat": "accepted[{{protocol}}]"},
+        {"refId": "B", "expr": "sum by (protocol) (rate(otelcol_exporter_sent_spans_total[15s]))", "legendFormat": "exported[{{protocol}}]"},
+        {"refId": "C", "expr": "sum by (protocol) (rate(otelcol_receiver_refused_spans_total[15s]))", "legendFormat": "refused[{{protocol}}]"},
+        {"refId": "D", "expr": "sum by (protocol) (rate(otelcol_exporter_send_failed_spans_total[15s]))", "legendFormat": "send_failed[{{protocol}}]"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["max", "mean", "lastNotNull"]}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "spanNulls": false, "showPoints": "never", "lineInterpolation": "smooth"}, "color": {"mode": "palette-classic"}}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Metric datapoints & Log records throughput",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 13},
+      "id": 6,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (protocol) (rate(otelcol_receiver_accepted_metric_points_total[15s]))", "legendFormat": "accepted_metrics[{{protocol}}]"},
+        {"refId": "B", "expr": "sum by (protocol) (rate(otelcol_exporter_sent_metric_points_total[15s]))", "legendFormat": "exported_metrics[{{protocol}}]"},
+        {"refId": "C", "expr": "sum by (protocol) (rate(otelcol_receiver_accepted_log_records_total[15s]))", "legendFormat": "accepted_logs[{{protocol}}]"},
+        {"refId": "D", "expr": "sum by (protocol) (rate(otelcol_exporter_sent_log_records_total[15s]))", "legendFormat": "exported_logs[{{protocol}}]"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["max", "mean", "lastNotNull"]}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "spanNulls": false, "showPoints": "never"}, "color": {"mode": "palette-classic"}}, "overrides": []}
+    },
+    {
+      "type": "row",
+      "title": "Container resources (cAdvisor)",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 21},
+      "collapsed": false,
+      "id": 101
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU usage (cores) per container",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 22},
+      "id": 7,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{name=~\".*collector.*\"}[15s]))", "legendFormat": "{{name}}"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["max", "mean", "lastNotNull"]}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 3, "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never"}, "color": {"mode": "palette-classic"}}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory working-set (bytes) per container",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 22},
+      "id": 8,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (name) (container_memory_working_set_bytes{name=~\".*collector.*\"})", "legendFormat": "{{name}} used"},
+        {"refId": "B", "expr": "sum by (name) (container_spec_memory_limit_bytes{name=~\".*collector.*\"})", "legendFormat": "{{name}} limit"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["max", "mean", "lastNotNull"]}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "fieldConfig": {"defaults": {"unit": "bytes", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never"}, "color": {"mode": "palette-classic"}}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Network RX/TX per container",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 30},
+      "id": 9,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (name) (rate(container_network_receive_bytes_total{name=~\".*collector.*|.*telemetrygen.*\"}[15s]))", "legendFormat": "rx {{name}}"},
+        {"refId": "B", "expr": "sum by (name) (rate(container_network_transmit_bytes_total{name=~\".*collector.*|.*telemetrygen.*\"}[15s]))", "legendFormat": "tx {{name}}"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["max", "mean", "lastNotNull"]}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "fieldConfig": {"defaults": {"unit": "Bps", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never"}, "color": {"mode": "palette-classic"}}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU throttling (seconds/s throttled)",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 30},
+      "id": 10,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (name) (rate(container_cpu_cfs_throttled_seconds_total{name=~\".*collector.*\"}[15s]))", "legendFormat": "{{name}}"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["max", "mean", "lastNotNull"]}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 3, "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never"}, "color": {"mode": "palette-classic"}}, "overrides": []}
+    },
+    {
+      "type": "row",
+      "title": "Collector internals",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 38},
+      "collapsed": false,
+      "id": 102
+    },
+    {
+      "type": "timeseries",
+      "title": "Process RSS & Heap (bytes)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 39},
+      "id": 11,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "otelcol_process_memory_rss_bytes", "legendFormat": "RSS [{{protocol}}]"},
+        {"refId": "B", "expr": "otelcol_process_runtime_heap_alloc_bytes", "legendFormat": "heap_alloc [{{protocol}}]"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["max", "mean", "lastNotNull"]}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "fieldConfig": {"defaults": {"unit": "bytes", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never"}, "color": {"mode": "palette-classic"}}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Batch processor — send size p95",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 39},
+      "id": 12,
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "histogram_quantile(0.95, sum by (protocol, le) (rate(otelcol_processor_batch_batch_send_size_bucket[30s])))", "legendFormat": "p95 batch send size [{{protocol}}]"}
+      ],
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["max", "mean", "lastNotNull"]}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never"}, "color": {"mode": "palette-classic"}}, "overrides": []}
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["otel", "benchmark", "load-test"],
+  "templating": {"list": []},
+  "time": {"from": "now-15m", "to": "now"},
+  "timepicker": {},
+  "timezone": "",
+  "title": "OTel Collector Benchmark",
+  "uid": "otel-benchmark",
+  "version": 1,
+  "weekStart": ""
+}

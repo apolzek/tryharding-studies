@@ -1,0 +1,7 @@
+services:
+  jsoncrack:
+    image: gorkinus/jsoncrack:latest
+    container_name: jsoncrack-poc
+    ports:
+      - "127.0.0.1:19008:8080"
+    restart: unless-stopped

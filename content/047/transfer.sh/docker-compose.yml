@@ -1,0 +1,19 @@
+services:
+  transfer:
+    image: dutchcoders/transfer.sh:latest
+    container_name: transfer-sh-poc
+    command:
+      - "--provider"
+      - "local"
+      - "--basedir"
+      - "/data"
+      - "--listener"
+      - ":8080"
+    ports:
+      - "127.0.0.1:19003:8080"
+    volumes:
+      - transfer_data:/data
+    restart: unless-stopped
+
+volumes:
+  transfer_data:

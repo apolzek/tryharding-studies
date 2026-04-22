@@ -1,0 +1,64 @@
+name: otelbench-observability
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.4.0
+    container_name: otelbench-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=2h
+      - --web.enable-lifecycle
+      - --enable-feature=exemplar-storage
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9091:9090"
+    networks: [otelbench]
+
+  grafana:
+    image: grafana/grafana:11.6.0
+    container_name: otelbench-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: ""
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3001:3000"
+    networks: [otelbench]
+    depends_on: [prometheus]
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.0
+    container_name: otelbench-cadvisor
+    restart: unless-stopped
+    command:
+      - --housekeeping_interval=2s
+      - --store_container_labels=false
+      - --docker=unix:///var/run/docker.sock
+      - --disable_metrics=percpu,sched,process,hugetlb,referenced_memory,cpu_topology,resctrl,advtcp
+    volumes:
+      - /:/rootfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    devices:
+      - /dev/kmsg
+    privileged: true
+    ports:
+      - "8081:8080"
+    networks: [otelbench]
+
+networks:
+  otelbench:
+    external: true

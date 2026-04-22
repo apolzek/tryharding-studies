@@ -1,0 +1,24 @@
+name: otelbench-http
+
+services:
+  collector-http:
+    image: otel/opentelemetry-collector-contrib:0.150.1
+    container_name: collector-http
+    hostname: collector-http
+    restart: "no"
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./collector-config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4318:4318"
+      - "13134:13133"
+      - "8889:8888"
+    cpus: ${COLLECTOR_CPUS:-1}
+    mem_limit: ${COLLECTOR_MEM:-512m}
+    mem_swappiness: 0
+    oom_kill_disable: false
+    networks: [otelbench]
+
+networks:
+  otelbench:
+    external: true

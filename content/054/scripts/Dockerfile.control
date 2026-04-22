@@ -1,0 +1,12 @@
+# syntax=docker/dockerfile:1
+FROM golang:1.22-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum* ./
+RUN go mod download || true
+COPY . .
+RUN CGO_ENABLED=0 go build -trimpath -o /out/trynet-control ./cmd/trynet-control
+
+FROM alpine:3.19
+RUN apk add --no-cache ca-certificates
+COPY --from=build /out/trynet-control /usr/local/bin/trynet-control
+ENTRYPOINT ["/usr/local/bin/trynet-control"]

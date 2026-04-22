@@ -1,0 +1,10 @@
+{{define "body"}}
+<h1>Access controls</h1>
+<p style="color:var(--muted)">Policy is evaluated before the netmap is distributed. First <code>accept</code> match wins. Anything unmatched is denied.</p>
+<form method="POST" action="/acls" class="card">
+  <textarea name="policy">{{.ACLJSON}}</textarea>
+  <div style="margin-top:8px; display:flex; justify-content:flex-end;">
+    <button>save policy</button>
+  </div>
+</form>
+{{end}}

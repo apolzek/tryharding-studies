@@ -1,0 +1,28 @@
+services:
+  backend:
+    build: ./backend
+    container_name: stalkr-backend
+    environment:
+      - SCRAPE_INTERVAL_MINUTES=15
+      - HTTP_TIMEOUT_SECONDS=20
+      - NITTER_BASE=https://nitter.net
+      - MASTODON_INSTANCE=mastodon.social
+    volumes:
+      - stalkr-data:/data
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: stalkr-frontend
+    environment:
+      - VITE_API_PROXY=http://backend:8000
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+
+volumes:
+  stalkr-data:

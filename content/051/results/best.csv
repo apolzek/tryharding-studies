@@ -1,0 +1,6 @@
+protocol,cpus,mem,signal,best_sustained_rate
+grpc,0.5,256m,traces,116750
+http,0.5,256m,traces,117840
+grpc,1,512m,traces,272560
+http,1,512m,traces,275600
+grpc,1,1g,traces,233245

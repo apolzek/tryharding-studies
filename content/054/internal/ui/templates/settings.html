@@ -1,0 +1,22 @@
+{{define "body"}}
+<h1>Tailnet settings</h1>
+<form method="POST" action="/settings" class="card">
+  <div class="kv">
+    <span>tailnet name</span><input name="tailnet_name" value="{{.Settings.TailnetName}}">
+    <span>IPv4 CIDR</span>  <input name="ipv4_cidr"    value="{{.Settings.IPv4CIDR}}">
+    <span>DNS suffix</span> <input name="dns_suffix"   value="{{.Settings.DNSSuffix}}">
+    <span>DERP URL</span>   <input name="derp_url"     value="{{.Settings.DerpURL}}">
+    <span>require approval</span>
+    <label><input type="checkbox" name="require_approval" value="1" {{if .Settings.RequireApproval}}checked{{end}}> new nodes start in pending state</label>
+  </div>
+  <div style="margin-top:12px">
+    <button>save</button>
+  </div>
+</form>
+
+<div class="card">
+  <h2>admin token</h2>
+  <p>The UI authenticates to the control server with this shared secret. Rotate it by restarting the control server with <code>TRYNET_ADMIN_TOKEN</code> set.</p>
+  <div><code>{{.Settings.AdminToken}}</code></div>
+</div>
+{{end}}

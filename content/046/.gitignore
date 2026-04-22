@@ -1,0 +1,9 @@
+node_modules/
+.env
+config.json
+tokens/*.json
+uploads/*
+public-media/*
+!tokens/.gitkeep
+!uploads/.gitkeep
+!public-media/.gitkeep

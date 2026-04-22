@@ -1,0 +1,8 @@
+protocol,cpus,mem,signal,target_rate,generators,workers_each,per_worker_rate,received_rate,refused_rate,cpu_cores,cpu_util_pct,mem_rss_bytes,container_alive
+http,1,512m,traces,10000,1,50,200,10000,0,0.037,3.7,204578816,true
+http,1,512m,traces,30000,1,50,600,30000,0,0.105,10.5,215703552,true
+http,1,512m,traces,60000,1,50,1200,58945,0,0.196,19.6,221360128,true
+http,1,512m,traces,120000,2,50,1200,117845,0,0.421,42.1,221196288,true
+http,1,512m,traces,200000,2,50,2000,176395,0,0.645,64.5,221392896,true
+http,1,512m,traces,300000,4,50,1500,275600,0,0.989,98.9,240377856,true
+http,1,512m,traces,450000,6,50,1500,285585,0,0.999,99.9,248352768,true

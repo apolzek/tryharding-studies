@@ -1,0 +1,20 @@
+services:
+  backend:
+    build: ./backend
+    container_name: brasilzao-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: brasilzao-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_TARGET=http://backend:4000
+    depends_on:
+      - backend
+    restart: unless-stopped

@@ -1,0 +1,16 @@
+services:
+  zincsearch:
+    image: public.ecr.aws/zinclabs/zincsearch:latest
+    container_name: zincsearch-poc
+    environment:
+      ZINC_FIRST_ADMIN_USER: admin
+      ZINC_FIRST_ADMIN_PASSWORD: Admin123!
+      ZINC_DATA_PATH: /data
+    volumes:
+      - zinc_data:/data
+    ports:
+      - "127.0.0.1:19004:4080"
+    restart: unless-stopped
+
+volumes:
+  zinc_data:

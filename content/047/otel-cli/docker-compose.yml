@@ -1,0 +1,13 @@
+services:
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.110.0
+    container_name: otel-cli-collector
+    command: ["--config=/etc/otel-collector.yaml"]
+    volumes:
+      - ./otel-collector.yaml:/etc/otel-collector.yaml:ro
+    networks:
+      - otelnet
+
+networks:
+  otelnet:
+    name: otel-cli-net

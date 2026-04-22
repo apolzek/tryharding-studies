@@ -1,0 +1,42 @@
+{{define "body"}}
+<h1>Pre-auth keys</h1>
+
+<div class="card">
+  <h2>create</h2>
+  <form method="POST" action="/keys/create" style="display:flex; gap:8px; flex-wrap:wrap;">
+    <input type="text"  name="user" placeholder="user (e.g. alice@example.com)" required>
+    <input type="text"  name="tags" placeholder="comma,separated,tags">
+    <label style="display:flex; align-items:center; gap:6px;">
+      <input type="checkbox" name="reusable" value="1"> reusable
+    </label>
+    <input type="number" name="ttl_days" value="90" min="1" style="width:80px" title="TTL in days">
+    <button>generate</button>
+  </form>
+</div>
+
+{{if .JustCreatedKey}}
+<div class="card" style="border-left:3px solid var(--acc)">
+  <div>new key, copy it now — it will not be shown again:</div>
+  <div style="font-family:ui-monospace,Menlo,monospace; padding:8px; background:#0a0b0d; border-radius:4px; margin-top:6px;">{{.JustCreatedKey}}</div>
+</div>
+{{end}}
+
+<table>
+  <tr><th>id</th><th>user</th><th>tags</th><th>reusable</th><th>used</th><th>expires</th><th></th></tr>
+  {{range .Keys}}
+    <tr>
+      <td>{{.ID}}</td>
+      <td>{{.User}}</td>
+      <td>{{range .Tags}}<span class="pill pill-on" style="margin-right:4px">{{.}}</span>{{end}}</td>
+      <td>{{if .Reusable}}yes{{else}}no{{end}}</td>
+      <td>{{if .Used}}<span class="pill pill-off">used</span>{{else}}<span class="pill pill-on">fresh</span>{{end}}</td>
+      <td>{{.Expires.Format "2006-01-02"}}</td>
+      <td>
+        <form method="POST" action="/keys/{{.Secret}}/delete" class="inline" onsubmit="return confirm('revoke?')">
+          <button class="danger">revoke</button>
+        </form>
+      </td>
+    </tr>
+  {{end}}
+</table>
+{{end}}

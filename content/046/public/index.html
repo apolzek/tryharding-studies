@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MULTIPOST — one video, every platform</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <nav>
+    <button class="nav-brand" data-route="#/">
+      <span class="nav-brand-mark"></span>
+      MULTIPOST
+    </button>
+    <div class="nav-links">
+      <a data-route="#/" class="route-link">Publish</a>
+      <a data-route="#/platforms" class="route-link">Platforms</a>
+      <a data-route="#/settings" class="route-link">Settings</a>
+    </div>
+  </nav>
+</header>
+
+<!-- ============== OVERVIEW ============== -->
+<main id="view-overview">
+
+  <section class="hero">
+    <div class="container">
+      <div class="title-3d-wrapper">
+        <h1 class="title-3d" aria-label="MULTIPOST">
+          <span class="glyph">M</span><span class="glyph">U</span><span class="glyph">L</span><span class="glyph">T</span><span class="glyph">I</span><span class="glyph">P</span><span class="glyph">O</span><span class="glyph">S</span><span class="glyph">T</span>
+        </h1>
+      </div>
+      <p class="hero-tagline">
+        One video. <b>Every connected platform.</b>
+      </p>
+      <p class="hero-sub">
+        <span class="terminal-prompt"></span><span id="typewriter-text"></span>
+      </p>
+    </div>
+  </section>
+
+  <section id="publish">
+    <div class="container">
+      <span class="section-kicker">01 / Upload</span>
+      <h2>Publish</h2>
+
+      <div class="brut publish-card">
+        <form id="upload-form">
+          <div class="field">
+            <label class="lbl" for="video-input">Video file</label>
+            <div class="file-wrap">
+              <input type="file" name="video" accept="video/*" required id="video-input">
+              <span class="file-name" id="file-name">No file chosen</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="title-input">Title</label>
+            <input id="title-input" type="text" name="title" maxlength="100" required>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="desc-input">Description</label>
+            <textarea id="desc-input" name="description" rows="4"></textarea>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="tags-input">Tags (comma separated)</label>
+            <input id="tags-input" type="text" name="tags" placeholder="music, vlog, travel">
+          </div>
+
+          <div class="field">
+            <fieldset class="targets">
+              <legend>Targets</legend>
+              <div class="targets-grid" id="targets"></div>
+            </fieldset>
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn">Post ▶</button>
+        </form>
+
+        <div class="results" id="results-card" hidden>
+          <h3>Results</h3>
+          <pre id="results"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="platforms">
+    <div class="container">
+      <span class="section-kicker">02 / Accounts</span>
+      <h2>Platforms</h2>
+      <div class="platforms-grid" id="platforms-grid"></div>
+    </div>
+  </section>
+</main>
+
+<!-- ============== DETAIL (platform) ============== -->
+<main id="view-detail" class="detail" hidden>
+  <div class="container">
+    <button class="back-link" data-route="#/platforms">← All platforms</button>
+    <div id="detail-host"></div>
+  </div>
+</main>
+
+<!-- ============== SETTINGS (general app config) ============== -->
+<main id="view-settings" class="detail" hidden>
+  <div class="container">
+    <button class="back-link" data-route="#/">← Home</button>
+    <div class="detail-head">
+      <div>
+        <h2>App Settings</h2>
+        <div class="tags"><span class="badge outline">General</span></div>
+      </div>
+    </div>
+
+    <div class="detail-body">
+      <div class="step">
+        <h3><span class="num">01</span> About these values</h3>
+        <p style="font-size:0.92rem;line-height:1.8;color:var(--mid)">
+          Shared across all platforms. <code style="font-family:'Space Mono',monospace">.env</code> values still win over what you save here.
+          Stored in <code style="font-family:'Space Mono',monospace">config.json</code>.
+        </p>
+      </div>
+
+      <div class="step">
+        <h3><span class="num">02</span> General configuration</h3>
+        <form id="general-form" class="creds-form"></form>
+        <div class="detail-actions" style="margin-top:1rem">
+          <button id="general-save" class="btn">Save</button>
+          <span id="general-status" class="inline-msg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    multipost · one video · every platform · local-only
+  </div>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

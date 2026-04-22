@@ -1,0 +1,11 @@
+services:
+  blackbox:
+    image: prom/blackbox-exporter:v0.25.0
+    container_name: blackbox-poc
+    command:
+      - "--config.file=/etc/blackbox/blackbox.yml"
+    volumes:
+      - ./blackbox.yml:/etc/blackbox/blackbox.yml:ro
+    ports:
+      - "127.0.0.1:19005:9115"
+    restart: unless-stopped

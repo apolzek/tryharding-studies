@@ -1,0 +1,45 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+        max_recv_msg_size_mib: 32
+
+processors:
+  batch:
+    timeout: 200ms
+    send_batch_size: 8192
+    send_batch_max_size: 10000
+
+exporters:
+  nop: {}
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  telemetry:
+    logs:
+      level: warn
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: 0.0.0.0
+                port: 8888
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [nop]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [nop]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [nop]

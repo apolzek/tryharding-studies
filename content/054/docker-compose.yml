@@ -1,0 +1,55 @@
+services:
+  control:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.control
+    container_name: trynet-control
+    restart: unless-stopped
+    environment:
+      - TRYNET_ADMIN_TOKEN=${TRYNET_ADMIN_TOKEN}
+      - TRYNET_DERP_URL=${TRYNET_DERP_URL:-ws://trynet-derp:3478/relay}
+    volumes:
+      - trynet-state:/var/lib/trynet
+      - ./certs:/certs:ro
+    command: >-
+      -addr=:8443
+      -state=/var/lib/trynet/state.json
+      -cert=/certs/fullchain.pem
+      -key=/certs/privkey.pem
+    ports:
+      - "8443:8443"
+
+  derp:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.derp
+    container_name: trynet-derp
+    restart: unless-stopped
+    command: >-
+      -addr=:3478
+    ports:
+      - "3478:3478"
+    depends_on:
+      - control
+
+  ui:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.ui
+    container_name: trynet-ui
+    restart: unless-stopped
+    environment:
+      - TRYNET_CONTROL_URL=https://control:8443
+      - TRYNET_ADMIN_TOKEN=${TRYNET_ADMIN_TOKEN}
+      - TRYNET_UI_USER=${TRYNET_UI_USER:-admin}
+      - TRYNET_UI_PASS=${TRYNET_UI_PASS:-changeme}
+    command: >-
+      -addr=:8080
+      -insecure
+    ports:
+      - "8080:8080"
+    depends_on:
+      - control
+
+volumes:
+  trynet-state:

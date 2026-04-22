@@ -1,0 +1,31 @@
+{{define "body"}}
+<h1>Overview</h1>
+<div class="grid">
+  <div class="card">
+    <div style="font-size:12px;color:var(--muted)">nodes</div>
+    <div style="font-size:32px">{{len .Nodes}}</div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;color:var(--muted)">online</div>
+    <div style="font-size:32px">{{.Online}}</div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;color:var(--muted)">pre-auth keys</div>
+    <div style="font-size:32px">{{len .Keys}}</div>
+  </div>
+</div>
+
+<h2>recent nodes</h2>
+<table>
+  <tr><th>name</th><th>user</th><th>ip</th><th>status</th><th>last seen</th></tr>
+  {{range .Nodes}}
+    <tr>
+      <td>{{.Name}}</td>
+      <td>{{.User}}</td>
+      <td><code>{{.TailnetIP}}</code></td>
+      <td>{{if .Online}}<span class="pill pill-on">online</span>{{else}}<span class="pill pill-off">offline</span>{{end}}</td>
+      <td>{{.LastSeen.Format "2006-01-02 15:04:05"}}</td>
+    </tr>
+  {{end}}
+</table>
+{{end}}

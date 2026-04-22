@@ -1,0 +1,13 @@
+services:
+  loggifly:
+    image: ghcr.io/clemcer/loggifly:v1
+    container_name: loggifly-poc
+    environment:
+      TZ: UTC
+      NTFY_URL: "https://ntfy.sh"
+      NTFY_TOPIC: "loggifly-poc-047-${RANDOM:-xyz}"
+      GLOBAL_KEYWORDS: "critical,fatal"
+      MONITOR_ALL_CONTAINERS: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: "no"

@@ -1,0 +1,14 @@
+services:
+  endlessh:
+    image: shizunge/endlessh-go:latest
+    container_name: endlessh-poc
+    command:
+      - "-interval_ms=2000"
+      - "-logtostderr"
+      - "-enable_prometheus"
+      - "-prometheus_host=0.0.0.0"
+      - "-prometheus_port=2112"
+    ports:
+      - "127.0.0.1:19006:2222"
+      - "127.0.0.1:19007:2112"
+    restart: unless-stopped
