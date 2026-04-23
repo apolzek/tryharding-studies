@@ -12,7 +12,6 @@ Every PoC carries YAML frontmatter (`title`, `tags`, `status`). This root index 
 
 ## Index
 
-- <a href="content/058">058</a> (untitled)  
 - <a href="content/057">057</a> (untitled)  
 - <a href="content/056">056</a> (untitled)  
 - <a href="content/055">055</a> (untitled)  
@@ -21,7 +20,7 @@ Every PoC carries YAML frontmatter (`title`, `tags`, `status`). This root index 
 - <a href="content/052">052</a> (untitled)  
 - <a href="content/051">051</a> (untitled)  
 - <a href="content/050">050</a> (untitled)  
-- 049 _missing_
+- <a href="content/049">049</a> (untitled)  
 - <a href="content/048">048</a> Observability-as-a-Service — per-tenant isolated stack on Kubernetes  
   `observability` `otel` `kubernetes` `helm` `go` `react` `multi-tenant`
 - <a href="content/047">047</a> (untitled)  

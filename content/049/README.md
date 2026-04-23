@@ -1,4 +1,4 @@
-# 058 — BigBench: one Go API, ten load-test tools
+# 049 — BigBench: one Go API, ten load-test tools
 
 A tiny Go HTTP service with three endpoints of increasing algorithmic
 complexity, benchmarked end-to-end with **10 different load-testing tools**,
@@ -40,7 +40,7 @@ as a non-root user, and listens directly on the host via `network_mode: host`.
 ## 2. Layout
 
 ```
-058/
+049/
 ├── app/                 # Go service + Dockerfile
 │   ├── main.go
 │   ├── go.mod
