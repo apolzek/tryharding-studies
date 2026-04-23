@@ -1,0 +1,60 @@
+Unable to find image 'locustio/locust:2.24.0' locally
+2.24.0: Pulling from locustio/locust
+e1caac4eb9d2: Pulling fs layer
+8100581c78dd: Pulling fs layer
+8d21d8872e7a: Pulling fs layer
+51d1f07906b7: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+fe87ad6b112e: Pulling fs layer
+1d6fa2ba6151: Pulling fs layer
+0360a6595ec7: Pulling fs layer
+4d8ccb72bbad: Pulling fs layer
+21306505b038: Pulling fs layer
+4f4fb700ef54: Already exists
+4f4fb700ef54: Pull complete
+4d8ccb72bbad: Download complete
+8100581c78dd: Download complete
+21306505b038: Download complete
+4befee5b8a3d: Download complete
+51d1f07906b7: Download complete
+1d6fa2ba6151: Download complete
+fe87ad6b112e: Download complete
+8d21d8872e7a: Download complete
+0360a6595ec7: Download complete
+e1caac4eb9d2: Download complete
+e1caac4eb9d2: Pull complete
+51d1f07906b7: Pull complete
+fe87ad6b112e: Pull complete
+4d8ccb72bbad: Pull complete
+8100581c78dd: Pull complete
+21306505b038: Pull complete
+1d6fa2ba6151: Pull complete
+8d21d8872e7a: Pull complete
+0360a6595ec7: Pull complete
+Digest: sha256:41473c9835159e8b828cfe05dd7de3ce5253b5814aa922d20d11aa3f90912b48
+Status: Downloaded newer image for locustio/locust:2.24.0
+[2026-04-22 22:07:12,575] universe/INFO/locust.main: Run time limit set to 15 seconds
+[2026-04-22 22:07:12,575] universe/INFO/locust.main: Starting Locust 2.24.0
+[2026-04-22 22:07:12,575] universe/INFO/locust.runners: Ramping to 50 users at a rate of 25.00 per second
+[2026-04-22 22:07:13,578] universe/INFO/locust.runners: All users spawned: {"BigBenchUser": 50} (50 total users)
+[2026-04-22 22:07:17,578] universe/WARNING/root: CPU usage above 90%! This may constrain your throughput and may even give inconsistent response time measurements! See https://docs.locust.io/en/stable/running-distributed.html for how to distribute the load over multiple CPU cores or machines
+[2026-04-22 22:07:27,483] universe/INFO/locust.main: --run-time limit reached, shutting down
+[2026-04-22 22:07:27,507] universe/WARNING/locust.runners: CPU usage was too high at some point during the test! See https://docs.locust.io/en/stable/running-distributed.html for how to distribute the load over multiple CPU cores or machines
+[2026-04-22 22:07:27,507] universe/INFO/locust.main: Shutting down (exit code 0)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      heavy                                                                          11363     0(0.00%) |      9       3      32      9 |  761.30        0.00
+GET      medium                                                                         23094     0(0.00%) |      9       3      32      9 | 1547.25        0.00
+GET      simple                                                                         34423     0(0.00%) |      9       1      32      9 | 2306.26        0.00
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                     68880     0(0.00%) |      9       1      32      9 | 4614.81        0.00
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      heavy                                                                                   9     10     10     10     11     12     16     18     30     31     32  11363
+GET      medium                                                                                  9     10     10     10     11     12     16     17     28     32     32  23094
+GET      simple                                                                                  9     10     10     10     11     12     16     17     29     31     32  34423
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                              9     10     10     10     11     12     16     17     29     32     32  68880
+

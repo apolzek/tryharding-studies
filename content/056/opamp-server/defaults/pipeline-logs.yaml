@@ -1,0 +1,41 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+  batch:
+    timeout: 1s
+    send_batch_size: 256
+  attributes/tag:
+    actions:
+      - key: pipeline.role
+        value: logs
+        action: upsert
+      - key: environment
+        value: poc
+        action: insert
+
+exporters:
+  otlp/sink:
+    endpoint: otel-sink:4317
+    tls:
+      insecure: true
+  debug:
+    verbosity: detailed
+
+service:
+  telemetry:
+    logs:
+      level: info
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes/tag]
+      exporters: [otlp/sink, debug]

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>OpAMP Control Plane — PoC</title>
+<style>
+  :root {
+    --bg: #0f1419; --panel: #161d26; --border: #242d3a;
+    --fg: #d8dee9; --muted: #7b8794; --accent: #7aa2f7;
+    --ok: #9ece6a; --warn: #e0af68; --err: #f7768e;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font-family: -apple-system, system-ui, sans-serif; font-size: 14px; }
+  header { padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border);
+           display: flex; align-items: baseline; justify-content: space-between; }
+  header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+  header .sub { color: var(--muted); font-size: 12px; font-family: var(--mono); }
+  main { display: grid; grid-template-columns: 360px 1fr; height: calc(100vh - 49px); }
+  aside { border-right: 1px solid var(--border); overflow-y: auto; }
+  .agent { padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .agent:hover { background: #1a222d; }
+  .agent.active { background: #1e2936; border-left: 3px solid var(--accent); padding-left: 13px; }
+  .agent h3 { margin: 0 0 4px 0; font-size: 14px; }
+  .agent .id { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .agent .meta { margin-top: 6px; display: flex; gap: 8px; font-size: 11px; }
+  .chip { padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #242d3a; }
+  .chip.ok { background: #2d3e2a; color: var(--ok); }
+  .chip.warn { background: #3e3525; color: var(--warn); }
+  .chip.err { background: #3e2a30; color: var(--err); }
+  .chip.off { background: #2a303c; color: var(--muted); }
+  section.detail { padding: 20px; overflow-y: auto; }
+  .empty { color: var(--muted); padding: 40px; text-align: center; }
+  .kv { display: grid; grid-template-columns: 200px 1fr; gap: 4px 16px;
+        font-family: var(--mono); font-size: 12px; margin-bottom: 16px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; word-break: break-all; }
+  h2 { font-size: 14px; font-weight: 600; margin: 16px 0 8px 0;
+       text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  textarea { width: 100%; height: 360px; background: #0a0e13; color: var(--fg);
+             border: 1px solid var(--border); border-radius: 4px; padding: 10px;
+             font-family: var(--mono); font-size: 12px; resize: vertical; }
+  .btn-row { margin-top: 10px; display: flex; gap: 8px; }
+  button { background: var(--accent); color: #0f1419; border: 0; padding: 8px 14px;
+           border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 13px; }
+  button:hover { opacity: 0.9; }
+  button.secondary { background: #242d3a; color: var(--fg); }
+  button.danger { background: #5a2c34; color: var(--err); }
+  .msg { margin-top: 10px; padding: 10px; border-radius: 4px; font-family: var(--mono); font-size: 12px; white-space: pre-wrap; }
+  .msg.ok { background: #1f2e1e; color: var(--ok); }
+  .msg.err { background: #2e1e22; color: var(--err); }
+  .history { font-family: var(--mono); font-size: 12px; }
+  .history .row { display: grid; grid-template-columns: 140px 80px 90px 1fr 80px;
+                  gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); align-items: center; }
+  .history .row.head { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+  pre.effective { background: #0a0e13; border: 1px solid var(--border); border-radius: 4px;
+                  padding: 10px; font-size: 12px; max-height: 240px; overflow: auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>OpAMP Control Plane</h1>
+  <span class="sub">PoC — 3 collectors, central config, guard rails</span>
+</header>
+<main>
+  <aside id="list"><div class="empty">loading…</div></aside>
+  <section class="detail" id="detail"><div class="empty">select an agent</div></section>
+</main>
+<script>
+let selected = null;
+
+async function refresh() {
+  const res = await fetch('/api/agents');
+  const agents = await res.json() || [];
+  agents.sort((a, b) => (a.description['service.name'] || '').localeCompare(b.description['service.name'] || ''));
+  const listEl = document.getElementById('list');
+  if (agents.length === 0) {
+    listEl.innerHTML = '<div class="empty">no agents connected yet</div>';
+    return;
+  }
+  listEl.innerHTML = agents.map(a => {
+    const name = a.description['service.name'] || '(unnamed)';
+    const status = a.status === 'connected' ? 'ok' : 'off';
+    const health = !a.health ? 'off' : a.health.startsWith('healthy') ? 'ok' : 'err';
+    return `<div class="agent ${selected === a.instance_uid ? 'active' : ''}" onclick="select('${a.instance_uid}')">
+      <h3>${name}</h3>
+      <div class="id">${a.instance_uid.slice(0, 24)}…</div>
+      <div class="meta">
+        <span class="chip ${status}">${a.status || 'unknown'}</span>
+        <span class="chip ${health}">${a.health || 'no health'}</span>
+      </div>
+    </div>`;
+  }).join('');
+  if (selected) renderDetail(agents.find(a => a.instance_uid === selected));
+}
+
+function select(id) {
+  selected = id;
+  refresh();
+}
+
+function renderDetail(a) {
+  if (!a) return;
+  const detail = document.getElementById('detail');
+  const desc = Object.entries(a.description).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+  const pending = atob(a.remote_config || '');
+  const hist = (a.history || []).slice().reverse().map(h => {
+    const ts = new Date(h.timestamp).toLocaleTimeString();
+    const statusClass = h.status === 'applied' ? 'ok' : h.status.startsWith('failed') ? 'err'
+                      : h.status === 'applying' || h.status === 'pending' ? 'warn' : 'off';
+    return `<div class="row">
+      <div>${ts}</div>
+      <div><span class="chip ${statusClass}">${h.status}</span></div>
+      <div>${h.author || ''}</div>
+      <div>${h.hash.slice(0, 12)}…</div>
+      <div><button class="secondary" onclick="rollback('${h.hash}')">rollback</button></div>
+    </div>`;
+  }).join('');
+
+  detail.innerHTML = `
+    <h2>identity</h2>
+    <dl class="kv">
+      <dt>instance_uid</dt><dd>${a.instance_uid}</dd>
+      ${desc}
+      <dt>last_seen</dt><dd>${new Date(a.last_seen).toLocaleString()}</dd>
+      <dt>status</dt><dd>${a.status}</dd>
+      <dt>health</dt><dd>${a.health || '-'}</dd>
+    </dl>
+
+    <h2>pending remote config (server wants this applied)</h2>
+    <textarea id="cfg">${escapeHtml(pending)}</textarea>
+    <div class="btn-row">
+      <button onclick="validate()">validate</button>
+      <button onclick="push()">push to agent</button>
+      <button class="secondary" onclick="refresh()">refresh</button>
+    </div>
+    <div id="msg"></div>
+
+    <h2>effective config (what the agent reports running)</h2>
+    <pre class="effective">${escapeHtml(a.effective_config || '(not reported)')}</pre>
+
+    <h2>history</h2>
+    <div class="history">
+      <div class="row head"><div>time</div><div>status</div><div>author</div><div>hash</div><div></div></div>
+      ${hist || '<div class="empty">no history</div>'}
+    </div>
+  `;
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+async function validate() {
+  const body = document.getElementById('cfg').value;
+  const r = await fetch('/api/validate', { method: 'POST', body });
+  const j = await r.json();
+  showMsg(j.ok ? 'validation: ok' : 'validation failed: ' + j.error, j.ok);
+}
+
+async function push() {
+  if (!selected) return;
+  const body = document.getElementById('cfg').value;
+  const r = await fetch('/api/agent?id=' + selected, { method: 'POST', body });
+  if (r.ok) {
+    showMsg('pushed (HTTP ' + r.status + ')', true);
+    setTimeout(refresh, 500);
+  } else {
+    const t = await r.text();
+    showMsg('push rejected (HTTP ' + r.status + '): ' + t, false);
+  }
+}
+
+async function rollback(hash) {
+  if (!selected) return;
+  const r = await fetch('/api/rollback?id=' + selected + '&hash=' + hash, { method: 'POST' });
+  if (r.ok) {
+    showMsg('rollback queued', true);
+    setTimeout(refresh, 500);
+  } else {
+    showMsg('rollback failed: ' + await r.text(), false);
+  }
+}
+
+function showMsg(text, ok) {
+  const el = document.getElementById('msg');
+  el.className = 'msg ' + (ok ? 'ok' : 'err');
+  el.textContent = text;
+}
+
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>

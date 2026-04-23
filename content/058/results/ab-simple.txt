@@ -1,0 +1,81 @@
+Unable to find image 'httpd:2.4-alpine' locally
+2.4-alpine: Pulling from library/httpd
+41c15f5ba584: Pulling fs layer
+6a0ac1617861: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+4ca6f6797e45: Pulling fs layer
+b989da80e210: Pulling fs layer
+719e56c8c985: Pulling fs layer
+7b3c5d639c11: Pulling fs layer
+4f4fb700ef54: Already exists
+23510c905458: Download complete
+02e72aed1fd5: Download complete
+41c15f5ba584: Download complete
+719e56c8c985: Download complete
+4ca6f6797e45: Download complete
+6a0ac1617861: Download complete
+4f4fb700ef54: Pull complete
+41c15f5ba584: Pull complete
+719e56c8c985: Pull complete
+6a0ac1617861: Pull complete
+7b3c5d639c11: Download complete
+b989da80e210: Download complete
+4ca6f6797e45: Pull complete
+7b3c5d639c11: Pull complete
+b989da80e210: Pull complete
+Digest: sha256:968c8b4098fcecb473762b45f6c541a3b2b2cfab2caccb1edbd2cece071ef160
+Status: Downloaded newer image for httpd:2.4-alpine
+This is ApacheBench, Version 2.3 <$Revision: 1923142 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 127.0.0.1 (be patient)
+Completed 5000 requests
+Completed 10000 requests
+Completed 15000 requests
+Completed 20000 requests
+Completed 25000 requests
+Completed 30000 requests
+Completed 35000 requests
+Completed 40000 requests
+Completed 45000 requests
+Completed 50000 requests
+Finished 50000 requests
+
+
+Server Software:        
+Server Hostname:        127.0.0.1
+Server Port:            8765
+
+Document Path:          /simple
+Document Length:        92 bytes
+
+Concurrency Level:      50
+Time taken for tests:   2.230 seconds
+Complete requests:      50000
+Failed requests:        11
+   (Connect: 0, Receive: 0, Length: 11, Exceptions: 0)
+Total transferred:      10000043 bytes
+HTML transferred:       4600043 bytes
+Requests per second:    22417.38 [#/sec] (mean)
+Time per request:       2.230 [ms] (mean)
+Time per request:       0.045 [ms] (mean, across all concurrent requests)
+Transfer rate:          4378.41 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    1   0.3      1       2
+Processing:     0    1   0.3      1       3
+Waiting:        0    1   0.3      1       2
+Total:          1    2   0.2      2       4
+
+Percentage of the requests served within a certain time (ms)
+  50%      2
+  66%      2
+  75%      2
+  80%      2
+  90%      2
+  95%      3
+  98%      3
+  99%      3
+ 100%      4 (longest request)

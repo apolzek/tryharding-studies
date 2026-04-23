@@ -1,0 +1,16 @@
+Bombarding http://127.0.0.1:8765/heavy?n=25 for 15s using 50 connection(s)
+ 00m14s 00m13s 00m13s 00m13s 00m13s 00m13s 00m12s 00m12s 00m12s 00m12s 00m12s 00m11s 00m11s 00m11s 00m11s 00m11s 00m10s 00m10s 00m10s 00m10s 00m10s 00m09s 00m09s 00m09s 00m09s 00m09s 00m08s 00m08s 00m08s 00m08s 00m08s 00m07s 00m07s 00m07s 00m07s 00m07s 00m06s 00m06s 00m06s 00m06s 00m06s 00m05s 00m05s 00m05s 00m05s 00m05s 00m04s 00m04s 00m04s 00m04s 00m04s 00m03s 00m03s 00m03s 00m03s 00m03s 00m02s 00m02s 00m02s 00m02s 00m02s 00m01s 00m01s 00m01s 00m01s 00m01s 15s
+Done!
+Statistics        Avg      Stdev        Max
+  Reqs/sec     30279.18    1727.92   39614.26
+  Latency        1.65ms   517.59us    15.54ms
+  Latency Distribution
+     50%     0.94ms
+     75%     2.59ms
+     90%     3.48ms
+     95%     4.40ms
+     99%     6.16ms
+  HTTP codes:
+    1xx - 0, 2xx - 454206, 3xx - 0, 4xx - 0, 5xx - 0
+    others - 0
+  Throughput:     7.65MB/s

@@ -1,0 +1,17 @@
+# Host-network deploy: the app binds 127.0.0.1:8765 directly on the host,
+# which removes docker-proxy NAT overhead and gives load tools full TCP throughput.
+services:
+  bigbench:
+    build: ./app
+    image: bigbench:local
+    container_name: bigbench
+    network_mode: host
+    environment:
+      LISTEN_ADDR: ":8765"
+      GOMAXPROCS: "0" # use all cores
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/bigbench", "-h"]
+      interval: 10s
+      timeout: 3s
+      retries: 3

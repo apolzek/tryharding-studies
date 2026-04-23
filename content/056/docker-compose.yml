@@ -1,0 +1,122 @@
+name: otel-opamp-poc
+
+x-contrib-version: &contrib_version "0.117.0"
+
+networks:
+  otel:
+    driver: bridge
+
+volumes:
+  opamp-state:
+  sup-traces-state:
+  sup-metrics-state:
+  sup-logs-state:
+
+services:
+  opamp-server:
+    build: ./opamp-server
+    container_name: opamp-server
+    networks: [otel]
+    ports:
+      - "4321:4321"   # Web UI / REST API
+      - "4320:4320"   # OpAMP WebSocket
+    volumes:
+      - ./opamp-server/defaults:/data/defaults:ro
+      - opamp-state:/data
+    restart: unless-stopped
+
+  otel-sink:
+    image: otel/opentelemetry-collector-contrib:0.117.0
+    container_name: otel-sink
+    networks: [otel]
+    command: ["--config=/etc/otel/sink.yaml"]
+    volumes:
+      - ./backend/otel-sink.yaml:/etc/otel/sink.yaml:ro
+    restart: unless-stopped
+
+  sup-traces:
+    build:
+      context: ./supervisor
+      args:
+        CONTRIB_VERSION: "v0.117.0"
+    container_name: sup-traces
+    user: "0:0"
+    depends_on: [opamp-server]
+    networks: [otel]
+    ports:
+      - "4317:4317"   # OTLP gRPC in
+    volumes:
+      - ./supervisor/supervisor-traces.yaml:/etc/otelcol-supervisor/supervisor.yaml:ro
+      - sup-traces-state:/var/lib/otelcol/supervisor
+    restart: unless-stopped
+
+  sup-metrics:
+    build:
+      context: ./supervisor
+      args:
+        CONTRIB_VERSION: "v0.117.0"
+    container_name: sup-metrics
+    user: "0:0"
+    depends_on: [opamp-server]
+    networks: [otel]
+    ports:
+      - "4327:4317"
+    volumes:
+      - ./supervisor/supervisor-metrics.yaml:/etc/otelcol-supervisor/supervisor.yaml:ro
+      - sup-metrics-state:/var/lib/otelcol/supervisor
+    restart: unless-stopped
+
+  sup-logs:
+    build:
+      context: ./supervisor
+      args:
+        CONTRIB_VERSION: "v0.117.0"
+    container_name: sup-logs
+    user: "0:0"
+    depends_on: [opamp-server]
+    networks: [otel]
+    ports:
+      - "4337:4317"
+    volumes:
+      - ./supervisor/supervisor-logs.yaml:/etc/otelcol-supervisor/supervisor.yaml:ro
+      - sup-logs-state:/var/lib/otelcol/supervisor
+    restart: unless-stopped
+
+  gen-traces:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.117.0
+    container_name: gen-traces
+    depends_on: [sup-traces]
+    networks: [otel]
+    command:
+      - traces
+      - --otlp-endpoint=sup-traces:4317
+      - --otlp-insecure
+      - --rate=2
+      - --duration=24h
+    restart: unless-stopped
+
+  gen-metrics:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.117.0
+    container_name: gen-metrics
+    depends_on: [sup-metrics]
+    networks: [otel]
+    command:
+      - metrics
+      - --otlp-endpoint=sup-metrics:4317
+      - --otlp-insecure
+      - --rate=1
+      - --duration=24h
+    restart: unless-stopped
+
+  gen-logs:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.117.0
+    container_name: gen-logs
+    depends_on: [sup-logs]
+    networks: [otel]
+    command:
+      - logs
+      - --otlp-endpoint=sup-logs:4317
+      - --otlp-insecure
+      - --rate=5
+      - --duration=24h
+    restart: unless-stopped

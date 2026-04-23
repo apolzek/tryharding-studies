@@ -1,0 +1,39 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+  filter/drop_noisy:
+    metrics:
+      exclude:
+        match_type: regexp
+        metric_names:
+          - "^system\\.network\\..*"
+
+exporters:
+  otlp/sink:
+    endpoint: otel-sink:4317
+    tls:
+      insecure: true
+  debug:
+    verbosity: basic
+
+service:
+  telemetry:
+    logs:
+      level: info
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, filter/drop_noisy]
+      exporters: [otlp/sink, debug]

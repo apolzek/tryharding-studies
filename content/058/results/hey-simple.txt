@@ -1,0 +1,75 @@
+Unable to find image 'rcmorano/docker-hey:latest' locally
+latest: Pulling from rcmorano/docker-hey
+54f7e8ac135a: Pulling fs layer
+5d71636fb824: Pulling fs layer
+f2e97ec220f9: Pulling fs layer
+c3e26ada0303: Pulling fs layer
+f368dba6a331: Pulling fs layer
+087a57faf949: Pulling fs layer
+d6341e30912f: Pulling fs layer
+e4c39f2ed8c2: Pulling fs layer
+e4c39f2ed8c2: Download complete
+087a57faf949: Download complete
+c3e26ada0303: Download complete
+d6341e30912f: Download complete
+f368dba6a331: Download complete
+54f7e8ac135a: Download complete
+54f7e8ac135a: Pull complete
+d6341e30912f: Pull complete
+087a57faf949: Pull complete
+5d71636fb824: Download complete
+5d71636fb824: Pull complete
+f368dba6a331: Pull complete
+f2e97ec220f9: Download complete
+e4c39f2ed8c2: Pull complete
+e4c39f2ed8c2: Pull complete
+c3e26ada0303: Pull complete
+f2e97ec220f9: Pull complete
+Digest: sha256:a89abfbcccfecec426a9373e6284ec56fea399e6e03b7110aa07010680296126
+Status: Downloaded newer image for rcmorano/docker-hey:latest
+
+Summary:
+  Total:	15.0006 secs
+  Slowest:	0.0050 secs
+  Fastest:	0.0000 secs
+  Average:	0.0007 secs
+  Requests/sec:	138922.8459
+  
+  Total data:	191729789 bytes
+  Size/request:	191 bytes
+
+Response time histogram:
+  0.000 [1]	|
+  0.001 [788506]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  0.001 [152585]	|■■■■■■■■
+  0.002 [45171]	|■■
+  0.002 [10542]	|■
+  0.003 [2300]	|
+  0.003 [614]	|
+  0.004 [179]	|
+  0.004 [84]	|
+  0.005 [15]	|
+  0.005 [3]	|
+
+
+Latency distribution:
+  10% in 0.0001 secs
+  25% in 0.0001 secs
+  50% in 0.0002 secs
+  75% in 0.0005 secs
+  90% in 0.0008 secs
+  95% in 0.0011 secs
+  99% in 0.0016 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0000 secs, 0.0000 secs, 0.0050 secs
+  DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0000 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0032 secs
+  resp wait:	0.0006 secs, 0.0000 secs, 0.0048 secs
+  resp read:	0.0001 secs, 0.0000 secs, 0.0032 secs
+
+Status code distribution:
+  [200]	1000000 responses
+
+
+

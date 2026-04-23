@@ -1,0 +1,25 @@
+config:
+  target: "http://127.0.0.1:8765"
+  phases:
+    - duration: 15
+      arrivalRate: 200
+      name: "steady"
+  http:
+    pool: 50
+
+scenarios:
+  - name: simple
+    weight: 3
+    flow:
+      - get:
+          url: "/simple"
+  - name: medium
+    weight: 2
+    flow:
+      - get:
+          url: "/medium?n=2000"
+  - name: heavy
+    weight: 1
+    flow:
+      - get:
+          url: "/heavy?n=25"

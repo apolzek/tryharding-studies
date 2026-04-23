@@ -1,0 +1,15 @@
+concurrency: 50
+base: 'http://127.0.0.1:8765'
+iterations: 5000
+rampup: 2
+
+plan:
+  - name: simple
+    request:
+      url: /simple
+  - name: medium
+    request:
+      url: /medium?n=2000
+  - name: heavy
+    request:
+      url: /heavy?n=25

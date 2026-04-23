@@ -1,0 +1,32 @@
+Unable to find image 'williamyeh/wrk:latest' locally
+latest: Pulling from williamyeh/wrk
+2bfb714176a4: Pulling fs layer
+bdb672ee55d9: Pulling fs layer
+c4d7e348633d: Pulling fs layer
+4fe2ade4980c: Pulling fs layer
+3e403d3ebdda: Pulling fs layer
+2bfb714176a4: Download complete
+bdb672ee55d9: Download complete
+3e403d3ebdda: Download complete
+c4d7e348633d: Download complete
+4fe2ade4980c: Download complete
+4fe2ade4980c: Pull complete
+2bfb714176a4: Pull complete
+bdb672ee55d9: Pull complete
+3e403d3ebdda: Pull complete
+c4d7e348633d: Pull complete
+Digest: sha256:78adc0d9d51a99e6759e702a08d03eaece81c890ffcc9790ef9e5b199d54f091
+Status: Downloaded newer image for williamyeh/wrk:latest
+Running 15s test @ http://127.0.0.1:8765/simple
+  4 threads and 50 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   309.77us  338.40us   4.84ms   86.09%
+    Req/Sec    46.64k     3.48k   95.77k    90.37%
+  Latency Distribution
+     50%  180.00us
+     75%  421.00us
+     90%  768.00us
+     99%    1.54ms
+  2793378 requests in 15.10s, 532.81MB read
+Requests/sec: 184991.45
+Transfer/sec:     35.29MB

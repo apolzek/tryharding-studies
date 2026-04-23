@@ -1,0 +1,3 @@
+GET http://127.0.0.1:8765/simple
+GET http://127.0.0.1:8765/medium?n=2000
+GET http://127.0.0.1:8765/heavy?n=25
